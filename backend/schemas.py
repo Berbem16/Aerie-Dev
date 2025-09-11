@@ -1,0 +1,23 @@
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
+
+class UASSightingBase(BaseModel):
+    type_of_sighting: str
+    time: datetime
+    latitude: float
+    longitude: float
+    location_name: str
+    description: str
+    symbol_code: Optional[str] = None
+
+class UASSightingCreate(UASSightingBase):
+    pass
+
+class UASSighting(UASSightingBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True 
