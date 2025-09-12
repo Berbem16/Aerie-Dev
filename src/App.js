@@ -397,18 +397,6 @@ function App() {
     }
   };
 
-  const useCurrentCoordsForSearch = () => {
-    if (clickedLocation) {
-      setSearchLat(clickedLocation.lat.toFixed(6));
-      setSearchLng(clickedLocation.lng.toFixed(6));
-    } else if (formData.latitude && formData.longitude) {
-      setSearchLat(formData.latitude);
-      setSearchLng(formData.longitude);
-    } else {
-      setMessage('No coordinates available yet. Click on the map or search a location first.');
-    }
-  };
-
   // Function to filter sightings based on search query
   const filterSightings = useCallback((query) => {
     if (!query.trim()) {
