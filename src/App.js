@@ -385,6 +385,17 @@ function App() {
     }
   }, [API_URL, startTime, endTime, searchLat, searchLng, searchRadiusKm, sightings]);
 
+  const resetBackendSearch = () => {
+    setStartTime('');
+    setEndTime('');
+    setSearchLat('');
+    setSearchLng('');
+    setSearchRadiusKm('');
+    setUsingBackendResults(false);
+    setFilteredSightings(sightings);
+    setMessage('Reset filters. Showing all sightings.');
+  };
+
   const useCurrentCoordsForSearch = () => {
     if (clickedLocation) {
       setSearchLat(clickedLocation.lat.toFixed(6));
