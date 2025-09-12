@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from datetime import datetime
 from typing import List
-from . import models
+import models
 
 from math import radians, cos, sin, asin, sqrt
 
