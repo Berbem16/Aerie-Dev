@@ -62,6 +62,13 @@ function App() {
   const [searchQuery, setSearchQuery] = useState(''); // Search query for sightings
   const [filteredSightings, setFilteredSightings] = useState([]); // Filtered sightings based on search
   const mapRef = useRef();
+  // Advanced (backend) search state
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [searchLat, setSearchLat] = useState('');
+  const [searchLng, setSearchLng] = useState('');
+  const [searchRadiusKm, setSearchRadiusKm] = useState('');
+  const [usingBackendResults, setUsingBackendResults] = useState(false);
 
   // Get API URL from environment variable or use default
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -344,6 +351,63 @@ function App() {
       console.error('Error fetching sightings:', error);
     }
   }, [API_URL]);
+
+  const runCombinedSearch = useCallback(async () => {
+    try {
+      const params = new URLSearchParams();
+
+    // Only include params the user provided
+      if (startTime) params.append('start_time', startTime); // backend accepts YYYY-MM-DDTHH:MM
+      if (endTime)   params.append('end_time',   endTime);
+      if (searchLat !== '')  params.append('latitude',  String(searchLat));
+      if (searchLng !== '')  params.append('longitude', String(searchLng));
+      if (searchRadiusKm)    params.append('radius_km', String(searchRadiusKm));
+
+    // If nothing filled, just show all
+      if ([...params.keys()].length === 0) {
+        setUsingBackendResults(false);
+        setFilteredSightings(sightings);
+        setMessage('Showing all sightings (no backend filters applied).');
+        return;
+      }
+
+      const url = `${API_URL}/sightings/search?` + params.toString();
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Backend search failed with status ${resp.status}`);
+      const data = await resp.json();
+
+      setFilteredSightings(data);
+      setUsingBackendResults(true);
+      setMessage(`Showing ${data.length} result(s) from backend search.`);
+    } catch (err) {
+      console.error(err);
+      setMessage('Error running backend search.');
+    }
+  }, [API_URL, startTime, endTime, searchLat, searchLng, searchRadiusKm, sightings]);
+
+  const useCurrentCoordsForSearch = () => {
+    if (clickedLocation) {
+      setSearchLat(clickedLocation.lat.toFixed(6));
+      setSearchLng(clickedLocation.lng.toFixed(6));
+    } else if (formData.latitude && formData.longitude) {
+      setSearchLat(formData.latitude);
+      setSearchLng(formData.longitude);
+    } else {
+      setMessage('No coordinates available yet. Click on the map or search a location first.');
+    }
+  };
+
+  const useCurrentCoordsForSearch = () => {
+    if (clickedLocation) {
+      setSearchLat(clickedLocation.lat.toFixed(6));
+      setSearchLng(clickedLocation.lng.toFixed(6));
+    } else if (formData.latitude && formData.longitude) {
+      setSearchLat(formData.latitude);
+      setSearchLng(formData.longitude);
+    } else {
+      setMessage('No coordinates available yet. Click on the map or search a location first.');
+    }
+  };
 
   // Function to filter sightings based on search query
   const filterSightings = useCallback((query) => {
@@ -728,6 +792,82 @@ function App() {
         </div>
 
         {message && <div className="message">{message}</div>}
+        
+        {/* Advanced (Backend) Search */}
+        <section className="advanced-search" style={{marginTop: '1rem', marginBottom: '1.5rem'}}>
+          <h3>Advanced Search (Backend)</h3>
+          <div className="advanced-grid" style={{display: 'grid', gap: '8px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))'}}>
+            <div>
+              <label>Start Time</label>
+              <input
+                type="datetime-local"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="form-input"
+              />
+            </div>
+            <div>
+              <label>End Time</label>
+              <input
+                type="datetime-local"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="form-input"
+              />
+            </div>
+            <div>
+              <label>Latitude</label>
+              <input
+                type="number"
+                step="any"
+                value={searchLat}
+                onChange={(e) => setSearchLat(e.target.value)}
+                className="form-input"
+                placeholder="e.g., 49.4521"
+              />
+            </div>
+            <div>
+              <label>Longitude</label>
+              <input
+                type="number"
+                step="any"
+                value={searchLng}
+                onChange={(e) => setSearchLng(e.target.value)}
+                className="form-input"
+                placeholder="e.g., 7.5658"
+              />
+            </div>
+            <div>
+              <label>Radius (km)</label>
+              <input
+                type="number"
+                step="any"
+                value={searchRadiusKm}
+                onChange={(e) => setSearchRadiusKm(e.target.value)}
+                className="form-input"
+                placeholder="e.g., 5"
+              />
+            </div>
+          </div>
+
+          <div style={{marginTop: '0.75rem', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
+            <button type="button" className="submit-btn" onClick={runCombinedSearch}>
+              Run Backend Search
+            </button>
+            <button type="button" className="save-btn" onClick={useCurrentCoordsForSearch}>
+              Use Current Map/Field Coords
+            </button>
+            {usingBackendResults && (
+              <button type="button" className="clear-search-btn" onClick={resetBackendSearch}>
+                Reset to All
+              </button>
+            )}
+          </div>
+
+          <small style={{opacity: 0.8}}>
+            Tip: you can fill coordinates by clicking on the map or by the location search above, then click “Use Current Map/Field Coords”.
+          </small>
+        </section>
 
         <div className="sightings-list">
           <div className="sightings-header">
@@ -756,8 +896,9 @@ function App() {
             <>
               <div className="search-results-info">
                 <small>
+                  {usingBackendResults ? 'Backend search: ' : ''}
                   Showing {filteredSightings.length} of {sightings.length} sightings
-                  {searchQuery && ` matching "${searchQuery}"`}
+                  {!usingBackendResults && searchQuery && ` matching "${searchQuery}"`}
                 </small>
               </div>
               <div className="sightings-grid">
