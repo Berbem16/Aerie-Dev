@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, CircleMarker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
@@ -76,6 +76,35 @@ function App() {
   // Get API URL from environment variable or use default
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+  // ----- MGRS circle helpers & derived list -----
+  const toRad = (d) => (d * Math.PI) / 180;
+  const distanceKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  };
+
+  const mgrsActive = !!circleCenter && circleRadiusM > 0;
+
+  const sightingsInCircle = React.useMemo(() => {
+    if (!mgrsActive) return [];
+    const rKm = circleRadiusM / 1000;
+    return filteredSightings.filter((s) => {
+      if (s.latitude == null || s.longitude == null) return false;
+      return (
+        distanceKm(
+          circleCenter.lat,
+          circleCenter.lng,
+          Number(s.latitude),
+          Number(s.longitude)
+        ) <= rKm
+      );
+    });
+  }, [mgrsActive, circleCenter, circleRadiusM, filteredSightings]);
 
   // Type of sighting options for the dropdown
   const sightingTypeOptions = [
@@ -823,11 +852,30 @@ function App() {
                 <Circle
                   center={circleCenter}
                   radius={circleRadiusM}
-                  pathOptions={{ color: '#FFFF00', weight: 2, fillOpacity: 0.05}}
+                  pathOptions={{ color: '#dbc502e0', weight: 2, fillOpacity: 0.05}}
                   />
               )}
 
-              {clickedLocation && (
+              {mgrsActive &&
+                sightingsInCircle.map((s) => (
+                  <CircleMarker
+                    key={`sighting-${s.id}`}
+                    center={[Number(s.latitude), Number(s.longitude)]}
+                    radius={6}
+                    pathOptions={{ color: '#FFFF00', weight: 2, fillOpacity: 0.6 }}
+                  >
+                    <Popup>
+                      <div><strong>{s.type_of_sighting}</strong></div>
+                      <div>{s.location_name}</div>
+                      <div>{formatDateTime(s.time)}</div>
+                      <div>
+                        {Number(s.latitude).toFixed(5)}, {Number(s.longitude).toFixed(5)}
+                      </div>
+                      {s.symbol_code && <div>Symbol: {s.symbol_code}</div>}
+                    </Popup>
+                  </CircleMarker>
+                ))}
+              {clickedLocation && !mgrsActive && (
                 <Marker 
                   position={clickedLocation}
                   icon={L.divIcon({
