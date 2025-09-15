@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-lea
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
-import mgrs from 'mgrs';
+import * as mgrs from 'mgrs';
 
 
 // Custom component to handle map clicks
@@ -452,18 +452,6 @@ function App() {
     setMgrsRadiusKm('');
     setCircleCenter(null);
     setCircleRadiusM(0);
-  };
-
-  const useCurrentCoordsForSearch = () => {
-    if (clickedLocation) {
-      setSearchLat(clickedLocation.lat.toFixed(6));
-      setSearchLng(clickedLocation.lng.toFixed(6));
-    } else if (formData.latitude && formData.longitude) {
-      setSearchLat(formData.latitude);
-      setSearchLng(formData.longitude);
-    } else {
-      setMessage('No coordinates available yet. Click on the map or search a location first.');
-    }
   };
 
   // Function to filter sightings based on search query
