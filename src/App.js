@@ -896,7 +896,7 @@ function App() {
         
         {/* Advanced (Backend) Search */}
         <section className="advanced-search" style={{marginTop: '1rem', marginBottom: '1.5rem'}}>
-          <h3>Advanced Search (Backend)</h3>
+          <h3>Advanced Search</h3>
           <div className="advanced-grid" style={{display: 'grid', gap: '8px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))'}}>
             <div>
               <label>Start Time</label>
