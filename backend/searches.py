@@ -5,9 +5,9 @@ Utility functions for searching UAS sightings by time range and proximity.
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from datetime import datetime
-from typing import List
+from typing import List, Tuple
 import models
-
+import mgrs as mgrs_lib
 from math import radians, cos, sin, asin, sqrt
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -48,4 +48,20 @@ def search_by_proximity(db: Session, latitude: float, longitude: float, max_dist
         dist = haversine(latitude, longitude, s.latitude, s.longitude)
         if dist <= max_distance_km:
             nearby.append(s)
+    nearby.sort(key=lambda s: haversine(latitude, longitude, s.latitude, s.longitude))
     return nearby
+
+def mgrs_to_latlon(mgrs_str: str) -> Tuple[float, float]:
+    m = mgrs_lib.MGRS()
+    lat, lon = m.toLatLon(mgrs_str.replace(" ", ""))
+    return float(lat), float(lon)
+
+def search_by_mgrs_radius(
+    db: Session,
+    mgrs_str: str,
+    radius_km: float
+) -> List[models.UASSighting]:
+# Function to search UAS sightings by MGRS and radius
+    latitude, longitude = mgrs_to_latlon(mgrs_str)
+    return search_by_proximity(db, latitude, longitude, radius_km
+)

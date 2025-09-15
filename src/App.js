@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
+import mgrs from 'mgrs';
 
 
 // Custom component to handle map clicks
@@ -69,6 +70,11 @@ function App() {
   const [searchLng, setSearchLng] = useState('');
   const [searchRadiusKm, setSearchRadiusKm] = useState('');
   const [usingBackendResults, setUsingBackendResults] = useState(false);
+  // MGRS search UI + circle state
+  const [mgrsText, setMgrsText] = useState('');
+  const [mgrsRadiusKm, setMgrsRadiusKm] = useState('');
+  const [circleCenter, setCircleCenter] = useState(null); // { lat, lng }
+  const [circleRadiusM, setCircleRadiusM] = useState(0); // in meters
 
   // Get API URL from environment variable or use default
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -385,6 +391,57 @@ function App() {
     }
   }, [API_URL, startTime, endTime, searchLat, searchLng, searchRadiusKm, sightings]);
 
+  const runMgrsSearch = useCallback(async () => {
+   try {
+      if (!mgrsText.trim() || !mgrsRadiusKm) {
+        setMessage('Enter an MGRS string and a radius (km).');
+        return;
+      }
+
+     // For map/circle preview: convert MGRS -> [lon, lat]
+      let lat, lng;
+      try {
+        const [lon, latDeg] = mgrs.toPoint(mgrsText.replace(/\s+/g, ''));
+        lat = latDeg;
+        lng = lon;
+      } catch (e) {
+        setMessage('Invalid MGRS coordinate.');
+        return;
+      }
+
+      // Draw/update circle on the map
+      setCircleCenter({ lat, lng });
+      setCircleRadiusM(Number(mgrsRadiusKm) * 1000);
+      if (mapRef.current) {
+        // Zoom heuristic based on radius
+        const r = Number(mgrsRadiusKm);
+        const z = r > 50 ? 8 : r > 10 ? 10 : 12;
+        mapRef.current.setView([lat, lng], z);
+      }
+
+      // Call backend
+      const params = new URLSearchParams({
+        mgrs: mgrsText,
+        radius_km: String(mgrsRadiusKm),
+      });
+     // Optional: include time window if you filled them
+      if (startTime) params.append('start_time', startTime);
+      if (endTime)   params.append('end_time', endTime);
+
+      const url = `${API_URL}/sightings/search/mgrs?` + params.toString();
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`Backend MGRS search failed with status ${resp.status}`);
+      const data = await resp.json();
+
+      setFilteredSightings(data);
+      setUsingBackendResults(true);
+      setMessage(`MGRS search: ${data.length} result(s) within ${mgrsRadiusKm} km of ${mgrsText}.`);
+    } catch (err) {
+      console.error(err);
+      setMessage('Error running MGRS search.');
+    }
+  }, [API_URL, mgrsText, mgrsRadiusKm, startTime, endTime]);
+
   const resetBackendSearch = () => {
     setStartTime('');
     setEndTime('');
@@ -394,6 +451,10 @@ function App() {
     setUsingBackendResults(false);
     setFilteredSightings(sightings);
     setMessage('Reset filters. Showing all sightings.');
+    setMgrsText('');
+    setMgrsRadiusKm('');
+    setCircleCenter(null);
+    setCircleRadiusM(0);
   };
 
   const useCurrentCoordsForSearch = () => {
@@ -773,6 +834,14 @@ function App() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
+              {circleCenter && circleRadiusM > 0 && (
+                <Circle
+                  center={circleCenter}
+                  radius={circleRadiusM}
+                  pathOptions={{ color: '#FFFF00', weight: 2, fillOpacity: 0.05}}
+                  />
+              )}
+
               {clickedLocation && (
                 <Marker 
                   position={clickedLocation}
@@ -847,11 +916,35 @@ function App() {
                 placeholder="e.g., 5"
               />
             </div>
+            <div>
+              <label>MGRS</label>
+              <input
+                type="text"
+                value={mgrsText}
+                onChange={(e) => setMgrsText(e.target.value)}
+                className="form-input"
+                placeholder="e.g., 18SUJ234678 or 18S UJ 234 678"
+              />
+            </div>
+            <div>
+              <label>MGRS Radius (km)</label>
+              <input
+                type="number"
+                step="any"
+                value={mgrsRadiusKm}
+                onChange={(e) => setMgrsRadiusKm(e.target.value)}
+                className="form-input"
+                placeholder="e.g., 5"
+              />
+            </div>         
           </div>
 
           <div style={{marginTop: '0.75rem', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
             <button type="button" className="submit-btn" onClick={runCombinedSearch}>
               Run Backend Search
+            </button>
+            <button type="button" className="submit-btn" onClick={runMgrsSearch}>
+              Run MGRS Search
             </button>
             <button type="button" className="save-btn" onClick={useCurrentCoordsForSearch}>
               Use Current Map/Field Coords

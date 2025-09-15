@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 import models
@@ -120,6 +120,57 @@ def search_sightings_combined(
 
     return results
 
+@app.get("/sightings/search/mgrs", response_model=List[schemas.UASSighting])
+def search_sightings_by_mgrs(
+    mgrs: str = Query(..., description="MGRS string, e.g. 18SUJ234678 or '18S UJ 234 678'"),
+    radius_km: float = Query(..., gt=0, le=1000, description="Search radius in kilometers"),
+    start_time: Optional[str] = Query(None, description="ISO e.g. 2025-09-11T14:30"),
+    end_time:   Optional[str] = Query(None, description="ISO e.g. 2025-09-11T16:00"),
+    db: Session = Depends(database.get_db),
+):
+    # Validate time args (both or neither)
+    q = db.query(models.UASSighting)
+    if (start_time is None) ^ (end_time is None):
+        raise HTTPException(status_code=400, detail="Provide both start_time and end_time or neither.")
+
+    if start_time is not None and end_time is not None:
+        try:
+            start_dt = datetime.fromisoformat(start_time)
+            end_dt = datetime.fromisoformat(end_time)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS)")
+        if end_dt < start_dt:
+            raise HTTPException(status_code=400, detail="end_time must be >= start_time")
+        q = q.filter(and_(models.UASSighting.time >= start_dt,
+                          models.UASSighting.time <= end_dt))
+
+    # Convert MGRS -> center point
+    try:
+        center_lat, center_lon = searches.mgrs_to_latlon(mgrs)
+    except Exception:
+        raise HTTPException(status_code=422, detail="Invalid MGRS coordinate")
+
+    # Bounding box prefilter for performance
+    lat_pad = radius_km / 111.0
+    lon_pad = radius_km / (111.0 * max(0.1, math.cos(math.radians(center_lat))))
+    lat_min, lat_max = center_lat - lat_pad, center_lat + lat_pad
+    lon_min, lon_max = center_lon - lon_pad, center_lon + lon_pad
+
+    candidates = (
+        q.filter(models.UASSighting.latitude.between(lat_min, lat_max))
+         .filter(models.UASSighting.longitude.between(lon_min, lon_max))
+         .all()
+    )
+
+    inside: List[models.UASSighting] = []
+    for s in candidates:
+        dist = searches.haversine(center_lat, center_lon, s.latitude, s.longitude)
+        if dist <= radius_km:
+            inside.append(s)
+
+    # Sort by distance ascending for nicer UX
+    inside.sort(key=lambda s: searches.haversine(center_lat, center_lon, s.latitude, s.longitude))
+    return inside
 
 if __name__ == "__main__":
     import uvicorn
