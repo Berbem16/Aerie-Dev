@@ -66,9 +66,6 @@ function App() {
   // Advanced (backend) search state
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [searchLat, setSearchLat] = useState('');
-  const [searchLng, setSearchLng] = useState('');
-  const [searchRadiusKm, setSearchRadiusKm] = useState('');
   const [usingBackendResults, setUsingBackendResults] = useState(false);
   // MGRS search UI + circle state
   const [mgrsText, setMgrsText] = useState('');
@@ -362,34 +359,37 @@ function App() {
     try {
       const params = new URLSearchParams();
 
-    // Only include params the user provided
-      if (startTime) params.append('start_time', startTime); // backend accepts YYYY-MM-DDTHH:MM
-      if (endTime)   params.append('end_time',   endTime);
-      if (searchLat !== '')  params.append('latitude',  String(searchLat));
-      if (searchLng !== '')  params.append('longitude', String(searchLng));
-      if (searchRadiusKm)    params.append('radius_km', String(searchRadiusKm));
-
-    // If nothing filled, just show all
+      const st = (startTime || '').trim();
+      const et = (endTime || '').trim();
+      if (st && et) {
+        params.append('start_time', st);
+        params.append('end_time', et);
+      }
       if ([...params.keys()].length === 0) {
         setUsingBackendResults(false);
         setFilteredSightings(sightings);
         setMessage('Showing all sightings (no backend filters applied).');
         return;
       }
-
+    
       const url = `${API_URL}/sightings/search?` + params.toString();
       const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`Backend search failed with status ${resp.status}`);
-      const data = await resp.json();
 
+      if (!resp.ok) {
+        const text = await resp.text();
+        setMessage(`Backend search failed ${resp.status}: ${text}`);
+        console.error('Backend error payload:', text);
+        return;
+      }
+      const data = await resp.json();
       setFilteredSightings(data);
       setUsingBackendResults(true);
-      setMessage(`Showing ${data.length} result(s) from backend search.`);
+      setMessage(`Showing ${data.length} result(s) from backend time-window search.`);
     } catch (err) {
       console.error(err);
       setMessage('Error running backend search.');
     }
-  }, [API_URL, startTime, endTime, searchLat, searchLng, searchRadiusKm, sightings]);
+  }, [API_URL, startTime, endTime, sightings]);
 
   const runMgrsSearch = useCallback(async () => {
    try {
@@ -445,9 +445,6 @@ function App() {
   const resetBackendSearch = () => {
     setStartTime('');
     setEndTime('');
-    setSearchLat('');
-    setSearchLng('');
-    setSearchRadiusKm('');
     setUsingBackendResults(false);
     setFilteredSightings(sightings);
     setMessage('Reset filters. Showing all sightings.');
@@ -884,39 +881,6 @@ function App() {
               />
             </div>
             <div>
-              <label>Latitude</label>
-              <input
-                type="number"
-                step="any"
-                value={searchLat}
-                onChange={(e) => setSearchLat(e.target.value)}
-                className="form-input"
-                placeholder="e.g., 49.4521"
-              />
-            </div>
-            <div>
-              <label>Longitude</label>
-              <input
-                type="number"
-                step="any"
-                value={searchLng}
-                onChange={(e) => setSearchLng(e.target.value)}
-                className="form-input"
-                placeholder="e.g., 7.5658"
-              />
-            </div>
-            <div>
-              <label>Radius (km)</label>
-              <input
-                type="number"
-                step="any"
-                value={searchRadiusKm}
-                onChange={(e) => setSearchRadiusKm(e.target.value)}
-                className="form-input"
-                placeholder="e.g., 5"
-              />
-            </div>
-            <div>
               <label>MGRS</label>
               <input
                 type="text"
@@ -945,9 +909,6 @@ function App() {
             </button>
             <button type="button" className="submit-btn" onClick={runMgrsSearch}>
               Run MGRS Search
-            </button>
-            <button type="button" className="save-btn" onClick={useCurrentCoordsForSearch}>
-              Use Current Map/Field Coords
             </button>
             {usingBackendResults && (
               <button type="button" className="clear-search-btn" onClick={resetBackendSearch}>
