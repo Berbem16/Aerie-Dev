@@ -940,9 +940,6 @@ function App() {
           </div>
 
           <div style={{marginTop: '0.75rem', display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-            <button type="button" className="submit-btn" onClick={runCombinedSearch}>
-              Run Backend Search
-            </button>
             <button type="button" className="submit-btn" onClick={runMgrsSearch}>
               Run MGRS Search
             </button>
