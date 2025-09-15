@@ -862,7 +862,7 @@ function App() {
                     key={`sighting-${s.id}`}
                     center={[Number(s.latitude), Number(s.longitude)]}
                     radius={6}
-                    pathOptions={{ color: '#FFFF00', weight: 2, fillOpacity: 0.6 }}
+                    pathOptions={{ color: '#4a4a06ff', weight: 2, fillOpacity: 0.6 }}
                   >
                     <Popup>
                       <div><strong>{s.type_of_sighting}</strong></div>
