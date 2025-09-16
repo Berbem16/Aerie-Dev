@@ -8,7 +8,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 import math
 
-import models, schemas, searches
+import models, schemas, searches, database
 from database import Base, engine, ensure_schema, get_db
 from uploads import router as uploads_router
 
