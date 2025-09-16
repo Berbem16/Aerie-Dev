@@ -1,15 +1,16 @@
-from fastapi import FastAPI, HTTPException, Depends, Query
+from fastapi import FastAPI, HTTPException, Depends, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from typing import List, Optional
+from pathlib import Path
 from datetime import datetime, timezone
-import os
 import math
-import models
-import schemas
-import database
-import searches
+
+import models, schemas, database, searches
+from uploads import router as uploads_router
+
 
 # Create database tables
 database.Base.metadata.create_all(bind=database.engine)
@@ -24,6 +25,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+STATIC_DIR = Path("static")
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+app.include_router(uploads_router)
 
 @app.get("/")
 async def root():

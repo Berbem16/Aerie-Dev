@@ -10,6 +10,7 @@ class UASSightingBase(BaseModel):
     location_name: str
     description: str
     symbol_code: Optional[str] = None
+    image_urls: List[str] = []
 
 class UASSightingCreate(UASSightingBase):
     pass

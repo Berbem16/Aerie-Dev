@@ -14,4 +14,5 @@ class UASSighting(database.Base):
     description = Column(Text, nullable=False)
     symbol_code = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now()) 
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    image_url = Column(JSON, nullable=False, default=list) 

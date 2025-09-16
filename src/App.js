@@ -63,6 +63,13 @@ function App() {
   const [searchQuery, setSearchQuery] = useState(''); // Search query for sightings
   const [filteredSightings, setFilteredSightings] = useState([]); // Filtered sightings based on search
   const mapRef = useRef();
+  // Pictures feature state
+  const [photoFiles, setPhotoFiles] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
+  const [imageUrls, setImageUrls] = useState([]); // URLs returned from backend after upload
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+
   // Advanced (backend) search state
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -74,7 +81,7 @@ function App() {
   const [circleRadiusM, setCircleRadiusM] = useState(0); // in meters
 
   // Get API URL from environment variable or use default
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 
   // ----- MGRS circle helpers & derived list -----
   const toRad = (d) => (d * Math.PI) / 180;
@@ -353,6 +360,52 @@ function App() {
     }
   };
 
+  // --- Pictures feature: input + upload helpers ---
+  const onPhotosChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setPhotoFiles(files);
+    setPhotoPreviews(files.map((f) => URL.createObjectURL(f)));
+    setUploadError('');
+  };
+
+  const clearPhotos = () => {
+    photoPreviews.forEach((u) => URL.revokeObjectURL(u));
+    setPhotoFiles([]);
+    setPhotoPreviews([]);
+    setImageUrls([]);
+    setUploadError('');
+  };
+
+  const uploadImages = async () => {
+    if (!photoFiles.length) {
+      setImageUrls([]);
+      return;
+    }
+    try {
+      setUploadBusy(true);
+      setUploadError('');
+      const fd = new FormData();
+      photoFiles.forEach((f) => fd.append('files', f));
+      const res = await fetch(`${API_URL}/upload_images`, {
+        method: 'POST',
+        body: fd,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Upload failed ${res.status}: ${text}`);
+      }
+      const data = await res.json();
+      setImageUrls(data.image_urls || []);
+      setMessage(`Uploaded ${data.image_urls?.length || 0} image(s).`);
+    } catch (err) {
+      console.error(err);
+      setUploadError(err.message || String(err));
+      setMessage('Error uploading images.');
+    } finally {
+      setUploadBusy(false);
+    }
+  };
+
   // Function to handle map zoom controls
   const handleZoomIn = () => {
     if (mapRef.current) {
@@ -364,11 +417,6 @@ function App() {
     if (mapRef.current) {
       mapRef.current.setZoom(mapRef.current.getZoom() - 1);
     }
-  };
-
-  // Function to handle when map is loaded
-  const handleMapLoad = (map) => {
-    mapRef.current = map;
   };
 
   const fetchSightings = useCallback(async () => {
@@ -603,7 +651,8 @@ function App() {
       // Convert datetime-local format to ISO string for backend
       const submissionData = {
         ...formData,
-        time: new Date(formData.time).toISOString()
+        time: new Date(formData.time).toISOString(),
+        image_urls: imageUrls,
       };
       
       const response = await fetch(`${API_URL}/sightings`, {
@@ -627,6 +676,7 @@ function App() {
         });
         setLocationInputValue('');
         fetchSightings();
+        clearPhotos();
       } else {
         setMessage('Error submitting sighting');
       }
@@ -801,6 +851,47 @@ function App() {
                 rows="4"
               />
             </div>
+            
+            {/* Pictures (upload first, then the returned URLs will be sent with the sighting) */}
+            <div className="form-group">
+              <label>Pictures</label>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={onPhotosChange}
+                className="form-input"
+              />
+              {!!photoPreviews.length && (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                  {photoPreviews.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt={`preview-${i}`}
+                      style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8 }}
+                    />
+                  ))}
+                </div>
+              )}
+              <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <button type="button" onClick={uploadImages} className="submit-btn" disabled={uploadBusy}>
+                  {uploadBusy ? 'Uploading…' : 'Upload Selected'}
+                </button>
+                <button type="button" onClick={clearPhotos} className="clear-search-btn" disabled={uploadBusy}>
+                  Clear
+                </button>
+                {!!imageUrls.length && (
+                  <small style={{ opacity: 0.85 }}>
+                    Ready to attach {imageUrls.length} uploaded image{imageUrls.length > 1 ? 's' : ''}.
+                  </small>
+                )}
+                {uploadError && <small style={{ color: 'crimson' }}>{uploadError}</small>}
+              </div>
+              <small className="form-help-text">
+                Tip: Click <em>Upload Selected</em> first. The returned links will be attached when you submit the sighting.
+              </small>
+            </div>
 
             <div className="form-group">
               <label htmlFor="symbol_code">Symbol Code:</label>
@@ -841,8 +932,7 @@ function App() {
                 center={mapCoordinates}
                 zoom={mapZoom}
                 style={{ height: '500px', width: '500px' }}
-                ref={mapRef}
-                onLoad={handleMapLoad}
+                whenCreated={(map) => { mapRef.current = map;}}
               >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -951,7 +1041,7 @@ function App() {
           </div>
 
           <small style={{opacity: 0.8}}>
-            Tip: you can fill coordinates by clicking on the map or by the location search above, then click “Use Current Map/Field Coords”.
+            Tip: you can fill MGRS coordinates by clicking on the map or by the location search above, then click “Use Current Map/Field Coords”.
           </small>
         </section>
 
@@ -998,7 +1088,23 @@ function App() {
                     {sighting.symbol_code && (
                       <p><strong>Symbol Code:</strong> {sighting.symbol_code}</p>
                     )}
-                    <p><strong>Reported:</strong> {new Date(sighting.created_at).toLocaleString()}</p>
+                    {Array.isArray(sighting.image_urls) && sighting.image_urls.length > 0 && (
+                      <div style={{ marginTop: 8 }}>
+                        <strong>Pictures:</strong>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                          {sighting.image_urls.map((url, i) => (
+                            <img
+                              key={i}
+                              src={`${API_URL}${url}`}
+                              alt={`sighting-${sighting.id}-${i}`}
+                              style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 6 }}
+                              loading="lazy"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <p><strong>Reported:</strong> {sighting.created_at ? new Date(sighting.created_at).toLocaleString() : '-'}</p>
                   </div>
                 ))}
               </div>
