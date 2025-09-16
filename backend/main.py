@@ -6,16 +6,13 @@ from sqlalchemy import and_
 from typing import List, Optional
 from pathlib import Path
 from datetime import datetime, timezone
-import database
 import math
 
-import models, schemas, database, searches
+import models, schemas, searches
+from database import Base, engine, ensure_schema
 from uploads import router as uploads_router
 
-
 # Create database tables
-database.Base.metadata.create_all(bind=database.engine)
-database.ensure_schema()
 app = FastAPI(title="UAS Reporting Tool", version="1.0.0")
 
 # Enable CORS
@@ -33,6 +30,9 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 app.include_router(uploads_router)
+
+Base.metadata.create_all(bind=engine)
+ensure_schema()
 
 @app.get("/")
 async def root():

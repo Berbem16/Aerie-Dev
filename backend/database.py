@@ -24,7 +24,9 @@ def get_db():
         db.close() 
 
 def ensure_schema():
-    ddl = "ALTER TABLE IF NOT EXISTS uas_sightings "\
-          "ADD COLUMN IF NOT EXISTS image_urls JSONB NOT NULL DEFAULT '[]'::jsonb;"
+    ddl = """
+    ALTER TABLE public.uas_sightings
+      ADD COLUMN IF NOT EXISTS image_urls JSONB NOT NULL DEFAULT '[]'::jsonb;
+    """
     with engine.begin() as conn:
         conn.execute(text(ddl))
