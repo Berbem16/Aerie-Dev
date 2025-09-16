@@ -111,7 +111,7 @@ function App() {
         ) <= rKm
       );
     });
-  }, [mgrsActive, circleCenter, circleRadiusM, filteredSightings]);
+  }, [mgrsActive, circleCenter, circleRadiusM, filteredSightings, distanceKm]);
 
   // Type of sighting options for the dropdown
   const sightingTypeOptions = [
@@ -637,6 +637,22 @@ function App() {
     setSearchQuery('');
   };
 
+  const clearMgrsSearch = useCallback(() => {
+    setMgrsText('');
+    setMgrsRadiusKm('');
+    setCircleCenter(null);
+    setCircleRadiusM(0);
+    if (startTime && endTime) {
+      runCombinedSearch();
+      setUsingBackendResults(true);
+      setMessage('MGRS filter cleared. Showing time-window results.');
+    } else {
+      setUsingBackendResults(false);
+      setFilteredSightings(sightings);
+      setMessage('MGRS filter cleared. Showing all sightings.');
+    }
+  }, [startTime, endTime, runCombinedSearch, sightings]);
+
   // Function to set time to current date/time
   const setCurrentTime = () => {
     setFormData(prev => ({
@@ -1033,16 +1049,17 @@ function App() {
             <button type="button" className="submit-btn" onClick={runMgrsSearch}>
               Run MGRS Search
             </button>
+
+            <button type="button" className="clear-search-btn" onClick={clearMgrsSearch}>
+              Clear MGRS
+            </button>
+
             {usingBackendResults && (
               <button type="button" className="clear-search-btn" onClick={resetBackendSearch}>
                 Reset to All
               </button>
             )}
           </div>
-
-          <small style={{opacity: 0.8}}>
-            Tip: you can fill MGRS coordinates by clicking on the map or by the location search above, then click “Use Current Map/Field Coords”.
-          </small>
         </section>
 
         <div className="sightings-list">
