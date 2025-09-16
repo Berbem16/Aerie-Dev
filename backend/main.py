@@ -27,6 +27,7 @@ app.add_middleware(
 )
 
 STATIC_DIR = Path("static")
+UPLOADS_DIR = STATIC_DIR / "uploads"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
