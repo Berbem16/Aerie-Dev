@@ -2,6 +2,11 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, Float
 from sqlalchemy.sql import func
 import database
 
+try: 
+    from sqlalchemy.dialects.postgresql import JSONB as JSON
+except Exception:
+    from sqlalchemy import JSON
+
 class UASSighting(database.Base):
     __tablename__ = "uas_sightings"
 
@@ -15,4 +20,4 @@ class UASSighting(database.Base):
     symbol_code = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    image_url = Column(JSON, nullable=False, default=list) 
+    image_urls = Column(JSON, nullable=False, default=list) 
