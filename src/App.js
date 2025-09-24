@@ -605,7 +605,7 @@ function App() {
       }));
     }
     
-    // Auto-populate symbol code based on UAS type
+    // Auto-populate symbol code based on aircraft type
     if (name === 'type_of_sighting') {
       let symbolCode = '';
       if (value === 'UAS - Fixed Wing') {
@@ -614,6 +614,8 @@ function App() {
         symbolCode = 'SHGPUCVUR-';
       } else if (value === 'UAS - Small Commercial' || value === 'UAS - Large Commercial') {
         symbolCode = 'SNGPUCVU--';
+      } else if (value === 'Manned - Fixed Wing' || value === 'Manned - Rotary Wing') {
+        symbolCode = 'SHGPUCVF--';
       }
       
       setFormData(prev => ({
@@ -919,15 +921,16 @@ function App() {
                 name="symbol_code"
                 value={formData.symbol_code}
                 onChange={handleInputChange}
-                placeholder="Auto-populated for UAS types"
+                placeholder="Auto-populated for aircraft types"
                 className="form-input"
                 readOnly
               />
               <small className="form-help-text">
-                Symbol code is automatically populated when UAS types are selected:
+                Symbol code is automatically populated when aircraft types are selected:
                 <br />• UAS - Fixed Wing: SHGPUCVUF-
                 <br />• UAS - Rotary Wing: SHGPUCVUR-
                 <br />• UAS - Small/Large Commercial: SNGPUCVU--
+                <br />• Manned - Fixed/Rotary Wing: SHGPUCVF--
               </small>
             </div>
 

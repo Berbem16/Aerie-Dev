@@ -19,7 +19,7 @@ A containerized web application for reporting UAS (Unmanned Aerial System) sight
 - **NEW**: Type of Sighting dropdown with standardized options
 - **NEW**: Auto-fill current date/time with manual override
 - **NEW**: Advanced search functionality for sightings
-- **NEW**: Symbol code auto-population for all UAS types
+- **NEW**: Symbol code auto-population for all aircraft types (UAS and Manned)
 - **NEW**: pgAdmin database management interface with auto-connect
 - **NEW**: Two-way map interaction (search → map, map → search)
 - **NEW**: Reverse geocoding for map clicks
@@ -131,16 +131,18 @@ The application automatically populates the date and time field with the current
 
 ## Symbol Code Feature
 
-The application includes automatic symbol code generation for all UAS types, following military symbology standards.
+The application includes automatic symbol code generation for all aircraft types (UAS and Manned), following military symbology standards.
 
 ### How It Works
 
-1. **Auto-Population**: When any UAS type is selected from the dropdown, the symbol code field automatically populates with the appropriate code:
+1. **Auto-Population**: When any aircraft type is selected from the dropdown, the symbol code field automatically populates with the appropriate code:
    - **UAS - Fixed Wing**: `SHGPUCVUF-`
    - **UAS - Rotary Wing**: `SHGPUCVUR-`
    - **UAS - Small Commercial**: `SNGPUCVU--`
    - **UAS - Large Commercial**: `SNGPUCVU--`
-2. **Auto-Clear**: When non-UAS sighting types are selected, the symbol code field is cleared
+   - **Manned - Fixed Wing**: `SHGPUCVF--`
+   - **Manned - Rotary Wing**: `SHGPUCVF--`
+2. **Auto-Clear**: When no aircraft type is selected, the symbol code field is cleared
 3. **Read-Only Field**: The symbol code field is read-only to prevent manual editing
 4. **Database Storage**: Symbol codes are stored in the database with each sighting
 5. **Search Integration**: Symbol codes are included in the search functionality
@@ -150,6 +152,7 @@ The application includes automatic symbol code generation for all UAS types, fol
 - **UAS Fixed Wing**: `SHGPUCVUF-` (Standard military symbology for UAS Fixed Wing)
 - **UAS Rotary Wing**: `SHGPUCVUR-` (Standard military symbology for UAS Rotary Wing)
 - **UAS Commercial**: `SNGPUCVU--` (Standard military symbology for UAS Commercial)
+- **Manned Aircraft**: `SHGPUCVF--` (Standard military symbology for Manned Fixed/Rotary Wing)
 - **Auto-Generated**: No manual input required
 - **Consistent**: Ensures standardized symbol codes across all reports
 - **Searchable**: Can be searched in the sightings list
@@ -380,11 +383,12 @@ CREATE TABLE uas_sightings (
 6. **Description**: Textarea for detailed description of the sighting
 
 7. **Symbol Code**: Auto-populated field for military symbology:
-   - **Auto-populates** with appropriate code when UAS types are selected:
+   - **Auto-populates** with appropriate code when aircraft types are selected:
      - UAS - Fixed Wing: `SHGPUCVUF-`
      - UAS - Rotary Wing: `SHGPUCVUR-`
      - UAS - Small/Large Commercial: `SNGPUCVU--`
-   - **Auto-clears** when non-UAS sighting types are selected
+     - Manned - Fixed/Rotary Wing: `SHGPUCVF--`
+   - **Auto-clears** when no aircraft type is selected
    - **Read-only** to prevent manual editing
    - **Searchable** in the sightings list
 
