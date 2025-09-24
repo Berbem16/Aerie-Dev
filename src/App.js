@@ -605,19 +605,21 @@ function App() {
       }));
     }
     
-    // Auto-populate symbol code when UAS - Fixed Wing is selected
-    if (name === 'type_of_sighting' && value === 'UAS - Fixed Wing') {
+    // Auto-populate symbol code based on UAS type
+    if (name === 'type_of_sighting') {
+      let symbolCode = '';
+      if (value === 'UAS - Fixed Wing') {
+        symbolCode = 'SHGPUCVUF-';
+      } else if (value === 'UAS - Rotary Wing') {
+        symbolCode = 'SHGPUCVUR-';
+      } else if (value === 'UAS - Small Commercial' || value === 'UAS - Large Commercial') {
+        symbolCode = 'SNGPUCVU--';
+      }
+      
       setFormData(prev => ({
         ...prev,
         [name]: value,
-        symbol_code: 'SHAPMF--***'
-      }));
-    } else if (name === 'type_of_sighting' && value !== 'UAS - Fixed Wing') {
-      // Clear symbol code if not UAS - Fixed Wing
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        symbol_code: ''
+        symbol_code: symbolCode
       }));
     }
     
@@ -917,12 +919,15 @@ function App() {
                 name="symbol_code"
                 value={formData.symbol_code}
                 onChange={handleInputChange}
-                placeholder="Auto-populated for UAS - Fixed Wing"
+                placeholder="Auto-populated for UAS types"
                 className="form-input"
                 readOnly
               />
               <small className="form-help-text">
-                Symbol code is automatically populated when "UAS - Fixed Wing" is selected
+                Symbol code is automatically populated when UAS types are selected:
+                <br />• UAS - Fixed Wing: SHGPUCVUF-
+                <br />• UAS - Rotary Wing: SHGPUCVUR-
+                <br />• UAS - Small/Large Commercial: SNGPUCVU--
               </small>
             </div>
 
