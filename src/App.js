@@ -1,18 +1,237 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import Map from '@arcgis/core/Map';
+import MapView from '@arcgis/core/views/MapView';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import Graphic from '@arcgis/core/Graphic';
+import Point from '@arcgis/core/geometry/Point';
+import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol';
+import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import './App.css';
 
 
-// Custom component to handle map clicks
-function MapClickHandler({ onMapClick }) {
-  useMapEvents({
-    click: (event) => {
-      onMapClick(event);
-    },
-  });
-  return null;
+// ArcGIS Map Component
+function ArcGISMap({ onMapClick, mapCoordinates, clickedLocation, mapRef }) {
+  const mapContainerRef = useRef(null);
+  const mapViewRef = useRef(null);
+  const graphicsLayerRef = useRef(null);
+  const onMapClickRef = useRef(onMapClick);
+
+  // Update the ref when onMapClick changes
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
+
+  // Initialize map once
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+
+    try {
+      // Create map with error handling
+      const map = new Map({
+        basemap: "streets"
+      });
+
+    // Handle basemap loading errors
+    map.basemap.when(() => {
+      console.log("Basemap loaded successfully");
+    }).catch((error) => {
+      // Only log if it's not an AbortError (which is common and handled gracefully)
+      if (error.name !== 'AbortError') {
+        console.warn("Basemap loading failed, trying fallback:", error);
+      }
+      // Fallback to a different basemap
+      map.basemap = "osm";
+    });
+
+    // Create map view
+    const view = new MapView({
+      container: mapContainerRef.current,
+      map: map,
+      center: [mapCoordinates.lng, mapCoordinates.lat], // [longitude, latitude]
+      zoom: 10
+    });
+
+    // Create graphics layer for markers
+    const graphicsLayer = new GraphicsLayer();
+    map.add(graphicsLayer);
+
+    // Store references
+    mapViewRef.current = view;
+    graphicsLayerRef.current = graphicsLayer;
+    if (mapRef) {
+      mapRef.current = view;
+      // Add layer management functions to the map reference
+      mapRef.current.layerManager = {
+        findLayerByTitle: (title) => {
+          return map.allLayers.find(function(layer) {
+            return layer.title === title;
+          });
+        },
+        getNonGroupLayers: () => {
+          return map.allLayers.filter(function(layer) {
+            return !layer.layers;
+          });
+        },
+        getAllLayers: () => map.allLayers,
+        addLayer: (layer) => map.add(layer),
+        removeLayer: (layer) => map.remove(layer),
+        toggleLayerVisibility: (layer) => {
+          layer.visible = !layer.visible;
+        }
+      };
+    }
+
+    // Add click event listener
+    const clickHandler = (event) => {
+      const point = event.mapPoint;
+      onMapClickRef.current({
+        latlng: {
+          lat: point.latitude,
+          lng: point.longitude
+        }
+      });
+    };
+    view.on("click", clickHandler);
+
+    // Layer management functionality
+    const setupLayerManagement = () => {
+      // Create a filtered collection of the non-group layers
+      const getNonGroupLayers = () => {
+        return map.allLayers.filter(function(layer) {
+          return !layer.layers; // layers property indicates it's a group layer
+        });
+      };
+
+      // Listen for any layer being added or removed in the Map
+      if (map && map.allLayers) {
+        map.allLayers.on("change", function(event) {
+          console.log("Layer added: ", event.added);
+          console.log("Layer removed: ", event.removed);
+          console.log("Layer moved: ", event.moved);
+        });
+      }
+
+      // Watching for changes to the visible layers in the Map
+      if (reactiveUtils && reactiveUtils.watch) {
+        reactiveUtils.watch(
+          () => {
+            // Add null checks to prevent errors during HMR
+            if (!view || !view.map || !view.map.allLayers) {
+              return [];
+            }
+            return view.map.allLayers.filter((layer) => layer.visible);
+          },
+          (newVisibleLayers, oldVisibleLayers) => {
+            // Add null checks for the callback parameters
+            if (!newVisibleLayers || !oldVisibleLayers) return;
+            
+            const added = newVisibleLayers.filter(
+              (layer) => !oldVisibleLayers.includes(layer)
+            );
+            const removed = oldVisibleLayers.filter(
+              (layer) => !newVisibleLayers.includes(layer)
+            );
+            added.forEach((layer) => console.log(layer.title, "is visible"));
+            removed.forEach((layer) => console.log(layer.title, "is not visible"));
+          }
+        );
+      } else {
+        console.log("reactiveUtils.watch not available, using alternative layer monitoring");
+        // Alternative layer monitoring without reactiveUtils
+        let previousVisibleLayers = [];
+        const checkLayerVisibility = () => {
+          // Add null checks to prevent errors during HMR
+          if (!view || !view.map || !view.map.allLayers) {
+            return;
+          }
+          
+          const currentVisibleLayers = view.map.allLayers.filter((layer) => layer.visible);
+          const added = currentVisibleLayers.filter(
+            (layer) => !previousVisibleLayers.includes(layer)
+          );
+          const removed = previousVisibleLayers.filter(
+            (layer) => !currentVisibleLayers.includes(layer)
+          );
+          added.forEach((layer) => console.log(layer.title, "is visible"));
+          removed.forEach((layer) => console.log(layer.title, "is not visible"));
+          previousVisibleLayers = currentVisibleLayers;
+        };
+        
+        // Check every 2 seconds
+        const visibilityInterval = setInterval(checkLayerVisibility, 2000);
+        
+        // Cleanup interval on component unmount
+        return () => {
+          if (visibilityInterval) {
+            clearInterval(visibilityInterval);
+          }
+        };
+      }
+
+      // Example: Add some sample layers for demonstration
+      // You can add your own layers here
+      if (map && map.allLayers) {
+        console.log("Map initialized with layers:", map.allLayers.length);
+        console.log("Non-group layers:", getNonGroupLayers().length);
+      }
+    };
+
+      // Setup layer management after map is ready
+      view.when(() => {
+        setupLayerManagement();
+      });
+
+      // Cleanup
+      return () => {
+        if (view) {
+          view.destroy();
+        }
+      };
+    } catch (error) {
+      console.error("Error initializing map:", error);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Update map center when coordinates change
+  useEffect(() => {
+    if (mapViewRef.current) {
+      mapViewRef.current.center = [mapCoordinates.lng, mapCoordinates.lat];
+    }
+  }, [mapCoordinates.lat, mapCoordinates.lng, mapRef]);
+
+  // Update markers when clicked location changes
+  useEffect(() => {
+    if (!graphicsLayerRef.current) return;
+
+    // Clear existing graphics
+    graphicsLayerRef.current.removeAll();
+
+    // Add new marker if clicked location exists
+    if (clickedLocation) {
+      const point = new Point({
+        longitude: clickedLocation.lng,
+        latitude: clickedLocation.lat
+      });
+
+      const markerSymbol = new SimpleMarkerSymbol({
+        color: "red",
+        size: "20px",
+        outline: {
+          color: "white",
+          width: 2
+        }
+      });
+
+      const graphic = new Graphic({
+        geometry: point,
+        symbol: markerSymbol
+      });
+
+      graphicsLayerRef.current.add(graphic);
+    }
+  }, [clickedLocation]);
+
+  return <div ref={mapContainerRef} style={{ height: '500px', width: '500px' }} />;
 }
 
 function App() {
@@ -54,7 +273,6 @@ function App() {
   const [message, setMessage] = useState('');
   const [isLoadingCoordinates, setIsLoadingCoordinates] = useState(false);
   const [mapCoordinates, setMapCoordinates] = useState({ lat: 49.4521, lng: 7.5658 }); // Default to Kaiserslautern area
-  const [mapZoom] = useState(10);
   const [coordinateSource, setCoordinateSource] = useState(''); // 'map', 'input', or 'manual'
   const [clickedLocation, setClickedLocation] = useState(null); // Store the clicked location for the red pin
   const [locationInputValue, setLocationInputValue] = useState(''); // Store the raw input value
@@ -121,7 +339,8 @@ function App() {
             
             // Zoom in on the location for better view
             if (mapRef.current) {
-              mapRef.current.setView([latitude, longitude], 15);
+              mapRef.current.center = [longitude, latitude];
+              mapRef.current.zoom = 15;
             }
             
             setCoordinateSource('input');
@@ -170,7 +389,8 @@ function App() {
             
             // Zoom in on the location for better view
             if (mapRef.current) {
-              mapRef.current.setView([latitude, longitude], 15);
+              mapRef.current.center = [longitude, latitude];
+              mapRef.current.zoom = 15;
             }
             
             setCoordinateSource('input');
@@ -282,7 +502,7 @@ function App() {
   };
 
   // Function to handle map clicks and update coordinates
-  const handleMapClick = async (event) => {
+  const handleMapClick = useCallback(async (event) => {
     console.log('Map clicked!', event.latlng);
     const lat = event.latlng.lat;
     const lng = event.latlng.lng;
@@ -312,25 +532,21 @@ function App() {
     } else {
       setMessage(`Map coordinates selected: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
     }
-  };
+  }, []);
 
   // Function to handle map zoom controls
   const handleZoomIn = () => {
     if (mapRef.current) {
-      mapRef.current.setZoom(mapRef.current.getZoom() + 1);
+      mapRef.current.zoom = mapRef.current.zoom + 1;
     }
   };
 
   const handleZoomOut = () => {
     if (mapRef.current) {
-      mapRef.current.setZoom(mapRef.current.getZoom() - 1);
+      mapRef.current.zoom = mapRef.current.zoom - 1;
     }
   };
 
-  // Function to handle when map is loaded
-  const handleMapLoad = (map) => {
-    mapRef.current = map;
-  };
 
   const fetchSightings = useCallback(async () => {
     try {
@@ -379,6 +595,25 @@ function App() {
   useEffect(() => {
     fetchSightings();
   }, [fetchSightings]);
+
+  // Example of using layer management functions
+  useEffect(() => {
+    if (mapRef.current && mapRef.current.layerManager) {
+      // Example: Find a specific layer
+      const foundLayer = mapRef.current.layerManager.findLayerByTitle("US Counties");
+      if (foundLayer) {
+        console.log("Found US Counties layer:", foundLayer);
+      }
+
+      // Example: Get all non-group layers
+      const nonGroupLayers = mapRef.current.layerManager.getNonGroupLayers();
+      console.log("Non-group layers:", nonGroupLayers);
+
+      // Example: Get all layers
+      const allLayers = mapRef.current.layerManager.getAllLayers();
+      console.log("All layers:", allLayers);
+    }
+  }, []);
 
   // Function to handle location search button click
   const handleLocationSearch = (e) => {
@@ -699,30 +934,12 @@ function App() {
               <small>Click anywhere on the map to get coordinates</small>
             </div>
             <div className="map-tile">
-              <MapContainer
-                center={mapCoordinates}
-                zoom={mapZoom}
-                style={{ height: '500px', width: '500px' }}
-                ref={mapRef}
-                onLoad={handleMapLoad}
-              >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              <ArcGISMap 
+                onMapClick={handleMapClick}
+                mapCoordinates={mapCoordinates}
+                clickedLocation={clickedLocation}
+                mapRef={mapRef}
               />
-              {clickedLocation && (
-                <Marker 
-                  position={clickedLocation}
-                  icon={L.divIcon({
-                    className: 'red-pin-marker',
-                    html: '<div style="font-size: 24px; color: red; text-align: center; line-height: 1;">📍</div>',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24]
-                  })}
-                />
-              )}
-              <MapClickHandler onMapClick={handleMapClick} />
-            </MapContainer>
             </div>
           </div>
         </div>
