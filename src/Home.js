@@ -55,6 +55,7 @@ const Home = () => {
   const [uploadError, setUploadError] = useState('');
   const [sightingsCount, setSightingsCount] = useState(0);
   const [pendingReports, setPendingReports] = useState(0);
+  const [savedFormsCount, setSavedFormsCount] = useState(0);
   const [showUnitModal, setShowUnitModal] = useState(false);
 
   // Get API URL from environment variable or use default
@@ -73,6 +74,17 @@ const Home = () => {
     }
   };
 
+  // Function to load saved forms count from localStorage
+  const loadSavedFormsCount = () => {
+    try {
+      const savedForms = JSON.parse(localStorage.getItem('uas_saved_forms') || '[]');
+      setSavedFormsCount(savedForms.length);
+    } catch (error) {
+      console.error('Error loading saved forms count:', error);
+      setSavedFormsCount(0);
+    }
+  };
+
   // Function to check if form has pending data
   const checkPendingReports = () => {
     const hasData = formData.type_of_sighting || 
@@ -84,9 +96,10 @@ const Home = () => {
     setPendingReports(hasData ? 1 : 0);
   };
 
-  // Fetch sightings count on component mount
+  // Fetch sightings count and load saved forms count on component mount
   useEffect(() => {
     fetchSightingsCount();
+    loadSavedFormsCount();
   }, []);
 
   // Check for pending reports whenever form data changes
@@ -475,6 +488,12 @@ const Home = () => {
   };
 
   const handleUnitSelection = async (unitData) => {
+    if (unitData.action === 'save') {
+      // Handle save form action
+      handleSaveForm(unitData);
+      return;
+    }
+
     try {
       // Convert datetime-local format to ISO string for backend
       const submissionData = {
@@ -517,6 +536,251 @@ const Home = () => {
     }
   };
 
+  const handleSaveForm = (unitData) => {
+    // Generate form data for saving
+    const formToSave = {
+      type_of_sighting: formData.type_of_sighting || '',
+      time: formData.time || getCurrentDateTime(),
+      latitude: formData.latitude || '',
+      longitude: formData.longitude || '',
+      location_name: formData.location_name || '',
+      description: formData.description || '',
+      symbol_code: formData.symbol_code || '',
+      ascc: unitData.ascc,
+      unit: unitData.unit,
+      image_urls: imageUrls,
+      saved_at: new Date().toISOString()
+    };
+
+    // Save to localStorage
+    try {
+      const savedForms = JSON.parse(localStorage.getItem('uas_saved_forms') || '[]');
+      savedForms.push(formToSave);
+      localStorage.setItem('uas_saved_forms', JSON.stringify(savedForms));
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+
+    // Generate professional Word document
+    generateWordDocument(formToSave);
+
+    setMessage('Form saved locally and Word document downloaded!');
+    
+    // Refresh saved forms count
+    loadSavedFormsCount();
+    
+    // Reset form after saving
+    setFormData({
+      type_of_sighting: '',
+      time: getCurrentDateTime(),
+      latitude: '',
+      longitude: '',
+      location_name: '',
+      description: '',
+      symbol_code: ''
+    });
+    setLocationInputValue('');
+    clearPhotos();
+  };
+
+  const generateWordDocument = (formData) => {
+    // Create HTML content for the Word document
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>UAS Sighting Report</title>
+      <style>
+        body {
+          font-family: 'Times New Roman', serif;
+          margin: 1in;
+          line-height: 1.6;
+          color: #000;
+        }
+        .header {
+          text-align: center;
+          border-bottom: 2px solid #000;
+          padding-bottom: 20px;
+          margin-bottom: 30px;
+        }
+        .header h1 {
+          font-size: 24px;
+          font-weight: bold;
+          margin: 0;
+          color: #000;
+        }
+        .header h2 {
+          font-size: 18px;
+          font-weight: normal;
+          margin: 10px 0 0 0;
+          color: #666;
+        }
+        .form-section {
+          margin-bottom: 25px;
+        }
+        .form-section h3 {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 10px;
+          color: #000;
+          border-bottom: 1px solid #ccc;
+          padding-bottom: 5px;
+        }
+        .form-row {
+          display: flex;
+          margin-bottom: 15px;
+        }
+        .form-field {
+          flex: 1;
+          margin-right: 20px;
+        }
+        .form-field:last-child {
+          margin-right: 0;
+        }
+        .form-field label {
+          font-weight: bold;
+          display: block;
+          margin-bottom: 5px;
+          font-size: 14px;
+        }
+        .form-field .value {
+          border-bottom: 1px solid #000;
+          padding: 5px 0;
+          min-height: 20px;
+          font-size: 14px;
+        }
+        .full-width {
+          width: 100%;
+        }
+        .description-field {
+          min-height: 100px;
+          border: 1px solid #000;
+          padding: 10px;
+          margin-top: 5px;
+        }
+        .footer {
+          margin-top: 40px;
+          text-align: center;
+          font-size: 12px;
+          color: #666;
+          border-top: 1px solid #ccc;
+          padding-top: 20px;
+        }
+        .classification {
+          text-align: center;
+          font-weight: bold;
+          font-size: 14px;
+          margin-bottom: 20px;
+          padding: 10px;
+          border: 2px solid #000;
+          background-color: #f0f0f0;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="classification">
+        UNCLASSIFIED//FOR OFFICIAL USE ONLY
+      </div>
+      
+      <div class="header">
+        <h1>AERIE UAS REPORTING SYSTEM</h1>
+        <h2>UAS Sighting Report</h2>
+      </div>
+
+      <div class="form-section">
+        <h3>REPORTING INFORMATION</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Report Date/Time:</label>
+            <div class="value">${new Date(formData.saved_at).toLocaleString()}</div>
+          </div>
+          <div class="form-field">
+            <label>ASCC:</label>
+            <div class="value">${formData.ascc || 'N/A'}</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Unit:</label>
+            <div class="value">${formData.unit || 'N/A'}</div>
+          </div>
+          <div class="form-field">
+            <label>Symbol Code:</label>
+            <div class="value">${formData.symbol_code || 'N/A'}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>SIGHTING DETAILS</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Type of Sighting:</label>
+            <div class="value">${formData.type_of_sighting || 'N/A'}</div>
+          </div>
+          <div class="form-field">
+            <label>Sighting Time:</label>
+            <div class="value">${formData.time || 'N/A'}</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Location Name:</label>
+            <div class="value">${formData.location_name || 'N/A'}</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label>Latitude:</label>
+            <div class="value">${formData.latitude || 'N/A'}</div>
+          </div>
+          <div class="form-field">
+            <label>Longitude:</label>
+            <div class="value">${formData.longitude || 'N/A'}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>DESCRIPTION</h3>
+        <div class="form-field full-width">
+          <div class="description-field">${formData.description || 'No description provided'}</div>
+        </div>
+      </div>
+
+      ${formData.image_urls && formData.image_urls.length > 0 ? `
+      <div class="form-section">
+        <h3>ATTACHED IMAGES</h3>
+        <div class="form-field full-width">
+          <div class="value">${formData.image_urls.length} image(s) attached</div>
+        </div>
+      </div>
+      ` : ''}
+
+      <div class="footer">
+        <p>This report was generated by the AERIE UAS Reporting System</p>
+        <p>Report ID: ${formData.saved_at}</p>
+        <p>Generated on: ${new Date().toLocaleString()}</p>
+      </div>
+    </body>
+    </html>
+    `;
+
+    // Create a blob with the HTML content
+    const blob = new Blob([htmlContent], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `UAS_Sighting_Report_${new Date().toISOString().split('T')[0]}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleCloseModal = () => {
     setShowUnitModal(false);
   };
@@ -538,6 +802,10 @@ const Home = () => {
           <div className="dashboard-card">
             <div className="card-title">PENDING REPORT</div>
             <div className="card-value">{pendingReports}</div>
+          </div>
+          <div className="dashboard-card">
+            <div className="card-title">SAVED FORMS</div>
+            <div className="card-value">{savedFormsCount}</div>
           </div>
         </div>
 

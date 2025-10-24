@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaBrain, FaChartLine, FaRobot, FaLightbulb } from 'react-icons/fa';
+import { FaBrain, FaChartLine, FaLightbulb } from 'react-icons/fa';
 import './App.css';
 
 const Analysis = () => {
@@ -64,16 +64,6 @@ const Analysis = () => {
                 </p>
               </div>
 
-              <div className="feature-card">
-                <div className="feature-icon">
-                  <FaRobot />
-                </div>
-                <h3>Natural Language Queries</h3>
-                <p>
-                  Ask questions about your data in natural language and receive 
-                  intelligent responses with relevant insights and visualizations.
-                </p>
-              </div>
             </div>
 
             <div className="development-status">

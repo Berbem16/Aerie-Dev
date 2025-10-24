@@ -219,10 +219,10 @@ body {
 /* Dashboard Cards */
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
-  max-width: 600px;
+  max-width: 800px;
 }
 
 .dashboard-card {
@@ -673,6 +673,28 @@ body {
   gap: 10px;
   padding: 20px;
   border-top: 1px solid #404040;
+}
+
+.save-form-btn {
+  background-color: #ffc107;
+  color: #1a1a1a;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-form-btn:hover:not(:disabled) {
+  background-color: #e0a800;
+}
+
+.save-form-btn:disabled {
+  background-color: #6c757d;
+  color: #ffffff;
+  cursor: not-allowed;
 }
 
 /* Admin Page Styles */

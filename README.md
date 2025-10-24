@@ -36,6 +36,8 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **🆕 Database Manager**: Real-time PostgreSQL table monitoring and schema display
 - **🆕 AI Analysis Placeholder**: Professional LLM integration roadmap and feature preview
 - **🆕 Development Timeline**: Visual progress tracking for AI feature development
+- **🆕 Word Document Export**: Professional military-grade Word document generation for saved forms
+- **🆕 Enhanced Form Saving**: Local storage with professional document output
 
 ## Dashboard Interface
 
@@ -51,7 +53,8 @@ AERIE features a modern, professional dashboard interface designed for military 
 Real-time statistics displayed at the top of the Report page:
 - **Total Sightings**: Live count of all reported sightings from the database
 - **Pending Report**: Shows "1" when form has unsaved data, "0" when empty
-- **Auto-Updates**: Statistics refresh automatically after form submissions
+- **Saved Forms**: Count of forms saved locally with Word document generation
+- **Auto-Updates**: Statistics refresh automatically after form submissions and saves
 
 ### Navigation Tabs
 - **REPORT**: Main sighting submission form with interactive map
@@ -131,6 +134,75 @@ The application now includes a comprehensive unit selection system that captures
 - **Database Integration**: Unit data stored in PostgreSQL with sightings
 - **Search Integration**: Units are searchable in the Recent Sightings page
 - **Form Validation**: Both ASCC and unit must be selected to continue
+
+## Word Document Export
+
+The application includes professional Word document generation for saved forms, providing military-grade documentation suitable for official reporting and archiving.
+
+### Save Form Options
+
+After selecting ASCC and Unit, users have two options:
+
+#### **Save Form Button**
+- **Local Storage**: Saves form data to browser's localStorage for persistence
+- **Word Document**: Generates and downloads a professional Word document
+- **Professional Format**: Military-grade document with official styling
+- **Complete Data**: All form fields included in structured format
+
+#### **Continue Button**
+- **Database Submission**: Submits form directly to PostgreSQL database
+- **Real-time Processing**: Immediate data storage and processing
+- **Dashboard Updates**: Live statistics refresh after submission
+
+### Word Document Features
+
+#### **Professional Formatting**
+- **Military Header**: "AERIE UAS REPORTING SYSTEM" branding
+- **Classification Banner**: "UNCLASSIFIED//FOR OFFICIAL USE ONLY"
+- **Times New Roman Font**: Professional serif font for official documents
+- **Standard Margins**: 1-inch margins for proper document formatting
+
+#### **Document Structure**
+1. **Classification Header**: Official security classification
+2. **Document Header**: AERIE system branding and report title
+3. **Reporting Information**: ASCC, Unit, Symbol Code, Report Date
+4. **Sighting Details**: Type, Time, Location, Coordinates
+5. **Description Section**: Full incident description in bordered text box
+6. **Attached Images**: Image count and reference information
+7. **Footer**: System information, Report ID, and generation timestamp
+
+#### **Professional Styling**
+- **Section Headers**: Bold, underlined section titles
+- **Form Fields**: Labeled fields with underlined values
+- **Two-Column Layout**: Efficient space utilization
+- **Bordered Description**: Professional text box for descriptions
+- **Consistent Spacing**: Proper margins and line spacing
+
+### File Management
+
+#### **File Generation**
+- **Format**: Microsoft Word document (.doc)
+- **Naming Convention**: `UAS_Sighting_Report_YYYY-MM-DD.doc`
+- **MIME Type**: `application/msword` for proper Word recognition
+- **Download**: Automatic download to user's device
+
+#### **Local Storage**
+- **Browser Persistence**: Forms saved across browser sessions
+- **Dashboard Integration**: Saved forms count displayed in dashboard
+- **Data Structure**: JSON format for easy retrieval and processing
+- **Error Handling**: Graceful handling of storage limitations
+
+### Use Cases
+
+#### **Official Reporting**
+- **Military Documentation**: Suitable for official UAS sighting reports
+- **Chain of Command**: Professional format for command reporting
+- **Archival**: Long-term storage and reference documentation
+
+#### **Offline Capability**
+- **Local Storage**: Forms available without internet connection
+- **Document Generation**: Professional documents created locally
+- **Data Portability**: Easy sharing and distribution of reports
 
 ## Admin Panel
 
@@ -465,7 +537,7 @@ uas-reporting-tool/
 │   ├── App.css          # Component styles (dashboard theme)
 │   ├── index.js         # React entry point
 │   ├── index.css        # Global styles
-│   ├── Home.js          # Main reporting form component
+│   ├── Home.js          # Main reporting form component with Word document export
 │   ├── RecentSightings.js # Sightings list and search component
 │   ├── Analysis.js      # AI-powered analysis placeholder with LLM roadmap
 │   ├── Admin.js         # Administrative panel with user and database management
@@ -671,7 +743,9 @@ CREATE TABLE uas_sightings (
 3. **Click Submit** → Unit selection modal appears
 4. **Select ASCC** → Choose from 9 Army Service Component Commands
 5. **Select Unit** → Choose from units specific to the selected ASCC
-6. **Click Continue** → Form submits with unit information
+6. **Choose Action**:
+   - **Save Form** → Generates Word document and saves locally
+   - **Continue** → Submits form to database
 7. **Success** → Form resets, modal closes, dashboard updates
 
 ### Searching Sightings
@@ -742,6 +816,8 @@ CREATE TABLE uas_sightings (
 - **AI Analysis Interface**: Professional placeholder with gradient cards and feature previews
 - **Development Timeline**: Visual progress tracking with animated status indicators
 - **Feature Cards**: Interactive hover effects and professional AI feature presentation
+- **Word Document Export**: Professional military-grade document generation with official styling
+- **Save Form Interface**: Enhanced modal with dual action buttons (Save Form vs Continue)
 
 ## Development
 

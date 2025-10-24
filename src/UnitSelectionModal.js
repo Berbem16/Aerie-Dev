@@ -190,6 +190,14 @@ const UnitSelectionModal = ({ isOpen, onClose, onSubmit }) => {
           </button>
           <button 
             type="button" 
+            className="save-form-btn" 
+            onClick={() => onSubmit({ ascc: selectedASCC, unit: selectedUnit, action: 'save' })}
+            disabled={!selectedASCC || !selectedUnit}
+          >
+            Save Form
+          </button>
+          <button 
+            type="button" 
             className="submit-btn" 
             onClick={handleSubmit}
             disabled={!selectedASCC || !selectedUnit}
