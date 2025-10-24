@@ -63,5 +63,12 @@ def search_by_mgrs_radius(
 ) -> List[models.UASSighting]:
 # Function to search UAS sightings by MGRS and radius
     latitude, longitude = mgrs_to_latlon(mgrs_str)
-    return search_by_proximity(db, latitude, longitude, radius_km
-)
+    return search_by_proximity(db, latitude, longitude, radius_km)
+
+def search_by_unit(db: Session, unit: str) -> List[models.UASSighting]:
+# Function to search UAS sightings by unit
+    return (
+        db.query(models.UASSighting)
+            .filter(models.UASSighting.unit.ilike(f"%{unit}%"))
+            .all()
+    )

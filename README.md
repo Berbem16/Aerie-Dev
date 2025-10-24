@@ -1,30 +1,130 @@
-# UAS Reporting Tool
+# AERIE - UAS Reporting Tool
 
-A containerized web application for reporting UAS (Unmanned Aerial System) sightings with a React frontend, FastAPI backend, and PostgreSQL database.
+A modern, dashboard-style web application for reporting UAS (Unmanned Aerial System) sightings with a React frontend, FastAPI backend, and PostgreSQL database. Features a professional military-style interface with comprehensive unit tracking and advanced search capabilities.
 
 ## Features
 
-- Report UAS sightings with type, time, location, and description
-- Submit and save functionality
-- View recent sightings with advanced search capabilities
-- Export data as JSON
-- Black background with yellow text styling
-- Light gray input boxes
-- **NEW**: PostgreSQL database for persistent data storage
-- **NEW**: Fully containerized with Docker
-- **NEW**: Location search with geocoding API integration
-- **NEW**: Separate latitude and longitude coordinate inputs
-- **NEW**: Automatic coordinate population using geocoding APIs
-- **NEW**: Interactive map tile for visual coordinate selection
-- **NEW**: Type of Sighting dropdown with standardized options
-- **NEW**: Auto-fill current date/time with manual override
-- **NEW**: Advanced search functionality for sightings
-- **NEW**: Symbol code auto-population for all aircraft types (UAS and Manned)
-- **NEW**: pgAdmin database management interface with auto-connect
-- **NEW**: Two-way map interaction (search → map, map → search)
-- **NEW**: Reverse geocoding for map clicks
-- **NEW**: DateTime formatting (YYYY-MM-DDTHH:MM display format)
-- **NEW**: Proper timezone handling and ISO datetime conversion
+### Core Functionality
+- **Dashboard Interface**: Modern left sidebar navigation with AERIE branding
+- **Unit-Based Reporting**: Complete Army Service Component Command (ASCC) and unit selection
+- **Interactive Map**: Visual coordinate selection with two-way geocoding
+- **Advanced Search**: Multi-criteria search including time, location, and unit filters
+- **Real-Time Dashboard**: Live statistics showing total sightings and pending reports
+- **Professional UI**: Dark theme with yellow accents and military styling
+
+### Technical Features
+- **PostgreSQL Database**: Persistent data storage with unit tracking
+- **Fully Containerized**: Docker-based deployment with pgAdmin integration
+- **Geocoding Integration**: Multi-API location search with worldwide coverage
+- **Symbol Code Generation**: Automatic military symbology for all aircraft types
+- **Image Upload**: Support for multiple photo attachments
+- **Responsive Design**: Works on desktop and mobile devices
+- **Real-Time Updates**: Live dashboard statistics and form validation
+
+### New Features (Latest Updates)
+- **🆕 Dashboard Redesign**: Left sidebar navigation with AERIE branding
+- **🆕 Unit Selection Workflow**: ASCC and unit selection modal for all submissions
+- **🆕 Complete Unit Database**: All 9 ASCCs with their respective units populated
+- **🆕 Enhanced Search**: Search by unit, ASCC, time, location, and more
+- **🆕 Dashboard Cards**: Real-time statistics for total sightings and pending reports
+- **🆕 Professional Styling**: Military-grade UI with dark theme and yellow accents
+- **🆕 AI Integration**: Custom AI icon in sidebar footer
+- **🆕 Advanced Search**: Multi-criteria backend search with location radius and unit filtering
+
+## Dashboard Interface
+
+AERIE features a modern, professional dashboard interface designed for military operations with a clean, intuitive layout.
+
+### Navigation Structure
+- **Left Sidebar**: Fixed navigation with AERIE branding and star icon
+- **Main Content Area**: Dynamic content area with header and page content
+- **Tab Navigation**: Easy switching between Report and Sightings pages
+- **Professional Styling**: Dark theme with yellow accents and military-grade aesthetics
+
+### Dashboard Cards
+Real-time statistics displayed at the top of the Report page:
+- **Total Sightings**: Live count of all reported sightings from the database
+- **Pending Report**: Shows "1" when form has unsaved data, "0" when empty
+- **Auto-Updates**: Statistics refresh automatically after form submissions
+
+### Navigation Tabs
+- **REPORT**: Main sighting submission form with interactive map
+- **SIGHTINGS**: Advanced search and viewing of all reported sightings
+- **ANALYTICS**: Placeholder for future analytics features
+- **ADMIN**: Placeholder for future administrative functions
+
+## Unit Selection Workflow
+
+The application now includes a comprehensive unit selection system that captures Army Service Component Command (ASCC) and specific unit information for all sightings.
+
+### Workflow Process
+1. **Fill out sighting form** on the main Report page
+2. **Click Submit** → Unit selection modal appears
+3. **Select ASCC** → Choose from 9 Army Service Component Commands
+4. **Select Unit** → Choose from units specific to the selected ASCC
+5. **Click Continue** → Form submits with unit information
+6. **Success** → Form resets and modal closes
+
+### Available ASCCs and Units
+
+#### ARCYBER (1 unit)
+- NETCOM
+
+#### SDDC (5 units)
+- 595th Transportation BDE
+- 596th Transportation BDE
+- 597th Transportation BDE
+- 598th Transportation BDE
+- 599th Transportation BDE
+
+#### USARCENT (7 units)
+- TF Spartan
+- 1st TSC
+- 160th Signal BDE
+- ASG - Kuwait
+- 4th BN Coordination Detachment
+- ASG - Jordan
+- 513th MIB
+
+#### USAREUR-AF (10 units)
+- V Corps
+- 56th Artillery Command
+- 7th Army Training Command
+- 10th Army Air & Missile Defense Command
+- 21st Theater Sustainment Command
+- Southern European Task Force – Africa
+- Headquarters & Headquarters Battalion
+- U.S. Army Europe and Africa Band and Chorus
+- U.S. Army NATO Brigade
+- 68th Medical Command
+
+#### USARNORTH (3 units)
+- CSTA
+- TF 51
+- DCE
+
+#### USARPAC (19 units)
+- 8th Army, I Corps, 25th ID, 11th ABN DIV, 94th AMDC, 8th TSC, 7th ID, 2nd ID, 5th SFAB, 1st MDTF, 3rd MDTF, 196th Infantry Brigade, 18th MEDCOM, 311th Signal Command, USAR-J, 351st Civil Affairs Command, 9th MSC, 5th Battlefield Coordination Detachment, 500th MI BDE
+
+#### USARSOUTH (4 units)
+- 470th MIB
+- 56th Signal BN
+- 1st BN
+- 228th Aviation Regiment
+
+#### USASMDC (3 units)
+- 100th Missile Defense Brigade
+- 1st Space Brigade
+- SMDCOE
+
+#### USASOC (12 units)
+- 1st Special Forces Command, 1st SFG, 3rd SFG, 5th SFG, 7th SFG, 10th SFG, 19th SFG, 20th SFG, 4th POG, 8th POG, 95th Civil Affairs Brigade, 528th Sustainment Brigade, Special Operations
+
+### Technical Implementation
+- **Dynamic Dropdowns**: Unit list updates based on ASCC selection
+- **Database Integration**: Unit data stored in PostgreSQL with sightings
+- **Search Integration**: Units are searchable in the Recent Sightings page
+- **Form Validation**: Both ASCC and unit must be selected to continue
 
 ## Location Search & Geocoding Integration
 
@@ -87,30 +187,70 @@ The application now includes an interactive map tile that allows users to visual
 
 ## Advanced Search Functionality
 
-The application includes powerful search capabilities for finding and filtering sightings.
+The application includes powerful search capabilities for finding and filtering sightings with both frontend and backend search options.
+
+### Frontend Search (Real-Time)
+Search across all sighting data with instant filtering:
+- **Location names** (e.g., "Ramstein", "Pittsburgh")
+- **Coordinates** (e.g., "49.4521", "40.4406")
+- **Sighting types** (e.g., "UAS", "Fixed Wing")
+- **Descriptions** (any text content)
+- **Symbol codes** (e.g., "SHAPMF--***")
+- **ASCC** (e.g., "USAREUR-AF", "USASOC")
+- **Unit** (e.g., "21st TSC", "5th SFG")
+
+### Backend Search (Advanced Filters)
+Use the Advanced Search section for complex queries:
+
+#### Time Window Search
+- **Start Time**: Beginning of time range
+- **End Time**: End of time range
+- **Combined**: Find sightings within specific time periods
+
+#### Location Search
+- **Location**: MGRS coordinates or location name
+- **Radius**: Search radius in kilometers
+- **Combined**: Find sightings within radius of specific coordinates
+
+#### Unit Search
+- **Unit**: Search by specific unit name
+- **Partial Matching**: Find units containing search term
+- **Combined**: Use with time and location filters
+
+### Search Examples
+
+#### Frontend Search
+- Type "21st TSC" → Shows all sightings from 21st Theater Sustainment Command
+- Type "USASOC" → Shows all sightings from Special Operations Command
+- Type "49.4" → Shows sightings near that latitude
+- Type "UAS" → Shows all UAS-related sightings
+
+#### Backend Search
+- **Time + Unit**: Find sightings from "5th SFG" in the last week
+- **Location + Unit**: Find sightings within 10km of coordinates from "1st TSC"
+- **All Filters**: Time window + location radius + specific unit
+- **Unit Only**: Search for "21st TSC" → Shows all sightings from that unit
+
+### How to Use Advanced Search
+
+1. **Fill out search criteria** (any combination):
+   - Time window (start/end times)
+   - Location (MGRS + radius)
+   - Unit name
+
+2. **Click "Run Search"** → Backend processes all filters
+
+3. **Results displayed** with success message showing which filters were applied
+
+4. **Clear individual filters** or reset all filters
 
 ### Search Features
-
-1. **Multi-Field Search**: Search across all sighting data:
-   - Location names (e.g., "Ramstein", "Pittsburgh")
-   - Coordinates (e.g., "49.4521", "40.4406")
-   - Sighting types (e.g., "UAS", "Fixed Wing")
-   - Descriptions (any text content)
-   - Symbol codes (e.g., "SHAPMF--***")
-
-2. **Real-Time Filtering**: Results update instantly as you type
-3. **Results Counter**: Shows "Showing X of Y sightings matching 'search term'"
-4. **Clear Search**: One-click button to reset and view all sightings
-5. **Case-Insensitive**: Searches work regardless of capitalization
-
-### How to Use Search
-
-1. **Type in the search box** above the sightings list
-2. **Results filter instantly** as you type
-3. **Use partial matches** - search for "Ram" to find "Ramstein Air Base"
-4. **Search coordinates** - type "49.4" to find sightings near that latitude
-5. **Search symbol codes** - type "SHAPMF" to find UAS Fixed Wing sightings
-6. **Clear search** - click "Clear" to see all sightings again
+- **Real-Time Filtering**: Frontend search updates instantly as you type
+- **Backend Processing**: Advanced search uses database queries for complex filters
+- **Results Counter**: Shows number of matching sightings
+- **Clear Options**: Clear individual filters or reset all
+- **Case-Insensitive**: All searches work regardless of capitalization
+- **Partial Matching**: Find results with partial text matches
 
 ## Auto-Fill Date/Time Feature
 
@@ -224,20 +364,28 @@ The application includes pgAdmin for easy database management and administration
 uas-reporting-tool/
 ├── backend/
 │   ├── __init__.py      # Python package init
-│   ├── main.py          # FastAPI backend server
+│   ├── main.py          # FastAPI backend server with search endpoints
 │   ├── database.py      # Database configuration
-│   ├── models.py        # SQLAlchemy models
-│   └── schemas.py       # Pydantic schemas
+│   ├── models.py        # SQLAlchemy models (includes unit fields)
+│   ├── schemas.py       # Pydantic schemas (includes unit validation)
+│   ├── searches.py      # Search utility functions
+│   └── uploads.py       # Image upload handling
 ├── public/
-│   └── index.html       # Main HTML file
+│   ├── index.html       # Main HTML file
+│   └── ai-icon.svg      # Custom AI icon for sidebar
 ├── src/
-│   ├── App.js           # Main React component
-│   ├── App.css          # Component styles
+│   ├── App.js           # Main React component with routing
+│   ├── App.css          # Component styles (dashboard theme)
 │   ├── index.js         # React entry point
-│   └── index.css        # Global styles
+│   ├── index.css        # Global styles
+│   ├── Home.js          # Main reporting form component
+│   ├── RecentSightings.js # Sightings list and search component
+│   ├── TabNavigation.js # Left sidebar navigation component
+│   ├── Header.js        # Main header component
+│   └── UnitSelectionModal.js # Unit selection modal component
 ├── Dockerfile           # Backend container definition
 ├── docker-compose.yml   # Multi-service orchestration
-├── package.json         # Node.js dependencies
+├── package.json         # Node.js dependencies (includes react-router-dom, react-icons)
 ├── requirements.txt      # Python dependencies
 ├── pgadmin/             # pgAdmin configuration
 │   └── servers.json     # Auto-connect server configuration
@@ -325,10 +473,30 @@ docker-compose logs postgres
 
 ## API Endpoints
 
+### Core Endpoints
 - `GET /` - API information
 - `GET /sightings` - Get all sightings (with pagination)
-- `POST /sightings` - Create a new sighting
+- `POST /sightings` - Create a new sighting (includes unit data)
 - `GET /sightings/{id}` - Get a specific sighting
+
+### Search Endpoints
+- `GET /sightings/search` - Advanced search with multiple filters:
+  - `start_time` - Start of time range (ISO format)
+  - `end_time` - End of time range (ISO format)
+  - `latitude` - Center latitude for proximity search
+  - `longitude` - Center longitude for proximity search
+  - `radius_km` - Search radius in kilometers
+  - `unit` - Search by unit name (partial matching)
+
+- `GET /sightings/search/mgrs` - MGRS-based location search:
+  - `mgrs` - MGRS coordinate string
+  - `radius_km` - Search radius in kilometers
+  - `start_time` - Optional time range start
+  - `end_time` - Optional time range end
+
+### Upload Endpoints
+- `POST /upload` - Upload images for sightings
+- `GET /uploads/{filename}` - Retrieve uploaded images
 
 ## Database Schema
 
@@ -342,10 +510,20 @@ CREATE TABLE uas_sightings (
     location_name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     symbol_code VARCHAR(50),
+    ascc VARCHAR(100),                    -- Army Service Component Command
+    unit VARCHAR(100),                    -- Specific unit within ASCC
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE
+    updated_at TIMESTAMP WITH TIME ZONE,
+    image_urls JSONB DEFAULT '[]'::jsonb  -- Array of image URLs
 );
 ```
+
+### Database Features
+- **Unit Tracking**: ASCC and unit columns for complete unit identification
+- **Image Storage**: JSONB array for multiple image URLs per sighting
+- **Timezone Support**: Full timezone information for all timestamps
+- **Search Optimization**: Indexed columns for fast unit and location searches
+- **Data Integrity**: Foreign key constraints and validation rules
 
 ## Form Fields
 
@@ -392,17 +570,58 @@ CREATE TABLE uas_sightings (
    - **Read-only** to prevent manual editing
    - **Searchable** in the sightings list
 
+## Complete Workflow
+
+### Reporting a Sighting
+1. **Navigate to Report tab** (default page)
+2. **Fill out sighting form**:
+   - Select aircraft type (auto-populates symbol code)
+   - Set date/time (auto-fills with current time)
+   - Search location or click on map for coordinates
+   - Add description and upload photos
+3. **Click Submit** → Unit selection modal appears
+4. **Select ASCC** → Choose from 9 Army Service Component Commands
+5. **Select Unit** → Choose from units specific to the selected ASCC
+6. **Click Continue** → Form submits with unit information
+7. **Success** → Form resets, modal closes, dashboard updates
+
+### Searching Sightings
+1. **Navigate to Sightings tab**
+2. **Use frontend search** for quick filtering:
+   - Type in search box for real-time results
+   - Search by location, coordinates, type, description, symbol code, ASCC, or unit
+3. **Use advanced search** for complex queries:
+   - Set time window (start/end times)
+   - Set location with radius (MGRS coordinates)
+   - Search by specific unit
+   - Combine multiple filters
+4. **Click "Run Search"** → Backend processes filters
+5. **View results** with success message showing applied filters
+
 ## Styling
 
-- **Background**: Black (#000000)
-- **Text**: Yellow (#FFFF00)
-- **Input boxes**: Light gray (#D3D3D3)
-- **Responsive design** for mobile and desktop
-- **Coordinates layout**: Side-by-side on desktop, stacked on mobile
-- **Search functionality**: Integrated search bars with clear buttons
-- **Interactive buttons**: Hover effects and visual feedback
-- **Loading states**: Visual indicators during API calls
-- **Form containers**: Organized input groups with proper spacing
+### Dashboard Theme
+- **Background**: Black (#000000) with dark gray (#1a1a1a) accents
+- **Primary Text**: Light gray (#E0E0E0) for readability
+- **Accent Color**: Yellow (#FFFF00) for highlights and branding
+- **Input Fields**: Dark gray (#2d2d2d) with light gray (#D3D3D3) text
+- **Professional Layout**: Left sidebar navigation with main content area
+
+### Component Styling
+- **Sidebar**: Fixed left navigation with AERIE branding and star icon
+- **Dashboard Cards**: Dark gray cards with yellow accents for statistics
+- **Modal Design**: Professional modal with dark theme for unit selection
+- **Form Layout**: Organized input groups with proper spacing and validation
+- **Interactive Elements**: Hover effects and visual feedback throughout
+- **Responsive Design**: Adapts to mobile and desktop screen sizes
+
+### Visual Features
+- **AI Icon**: Custom octagonal AI icon in sidebar footer
+- **Navigation Icons**: React Icons for professional appearance
+- **Loading States**: Visual indicators during API calls
+- **Search Interface**: Integrated search bars with clear buttons
+- **Map Integration**: Interactive map with coordinate selection
+- **Image Display**: Thumbnail previews for uploaded photos
 
 ## Development
 

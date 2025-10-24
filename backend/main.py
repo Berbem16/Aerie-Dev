@@ -97,6 +97,7 @@ def search_sightings_combined(
     latitude:   Optional[float] = Query(None),
     longitude:  Optional[float] = Query(None),
     radius_km:  Optional[float] = Query(None),
+    unit:       Optional[str] = Query(None, description="Unit name to search for"),
     db: Session = Depends(database.get_db),
 ):
     # Start with a base query
@@ -113,6 +114,10 @@ def search_sightings_combined(
             raise HTTPException(status_code=400, detail="end_time must be >= start_time")
         q = q.filter(and_(models.UASSighting.time >= start_dt,
                           models.UASSighting.time <= end_dt))
+
+    # Unit filtering
+    if unit is not None:
+        q = q.filter(models.UASSighting.unit.ilike(f"%{unit}%"))
 
     # Execute DB query (time-filtered or all)
     results = q.all()
