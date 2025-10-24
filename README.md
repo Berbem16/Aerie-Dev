@@ -34,6 +34,8 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **🆕 Dynamic Page Titles**: Context-aware header titles that update with navigation
 - **🆕 User Management**: Add, edit, delete users with role-based permissions
 - **🆕 Database Manager**: Real-time PostgreSQL table monitoring and schema display
+- **🆕 AI Analysis Placeholder**: Professional LLM integration roadmap and feature preview
+- **🆕 Development Timeline**: Visual progress tracking for AI feature development
 
 ## Dashboard Interface
 
@@ -54,7 +56,7 @@ Real-time statistics displayed at the top of the Report page:
 ### Navigation Tabs
 - **REPORT**: Main sighting submission form with interactive map
 - **SIGHTINGS**: Advanced search and viewing of all reported sightings
-- **ANALYSIS**: Placeholder for future analytics features
+- **ANALYSIS**: AI-powered analysis placeholder with LLM integration roadmap
 - **ADMIN**: Complete administrative panel with user management and database tools
 
 ## Unit Selection Workflow
@@ -157,6 +159,59 @@ The Admin panel provides comprehensive system administration capabilities with u
 - **uas_sightings**: Main sightings table with 13 columns including unit tracking
 - **users**: User management table with authentication and role information
 - **Column Information**: Complete schema details for all database tables
+
+## AI-Powered Analysis (Coming Soon)
+
+The Analysis tab provides a comprehensive overview of the upcoming AI-powered intelligence system that will leverage Large Language Models (LLMs) for advanced UAS sighting analysis.
+
+### Planned AI Features
+
+#### Pattern Analysis
+- **Sighting Patterns**: AI-powered analysis of UAS sighting frequency and distribution
+- **Geographic Trends**: Identification of high-risk areas and operational patterns
+- **Temporal Analysis**: Time-based pattern recognition and trend analysis
+- **Threat Assessment**: Automated evaluation of potential security threats
+
+#### Intelligence Reports
+- **Automated Generation**: AI-generated intelligence reports based on sighting data
+- **Threat Assessments**: Comprehensive security evaluations and recommendations
+- **Actionable Insights**: Clear guidance for operational decision-making
+- **Custom Reports**: Tailored analysis for specific units or geographic areas
+
+#### Predictive Analytics
+- **Activity Prediction**: Machine learning models to forecast potential UAS activity
+- **Risk Modeling**: Identification of high-probability threat scenarios
+- **Early Warning**: Proactive alerts for potential security concerns
+- **Trend Forecasting**: Long-term pattern prediction and strategic planning
+
+#### Natural Language Queries
+- **Conversational Interface**: Ask questions about data in natural language
+- **Intelligent Responses**: AI-generated answers with relevant insights
+- **Data Exploration**: Interactive querying of sighting databases
+- **Visual Analytics**: AI-driven charts and visualizations
+
+### Development Roadmap
+
+#### ✅ Completed
+- **Data Collection System**: UAS sighting data collection and storage
+- **Unit Tracking**: ASCC and unit-based reporting capabilities
+- **Search Infrastructure**: Advanced search and filtering systems
+
+#### 🔄 In Development
+- **LLM Integration**: Large Language Model integration for intelligent analysis
+- **AI Pipeline**: Data processing and analysis infrastructure
+- **Natural Language Processing**: Query understanding and response generation
+
+#### ⏳ Planned
+- **Advanced Analytics**: Predictive modeling and automated intelligence reports
+- **Real-time Analysis**: Live threat assessment and monitoring
+- **Custom AI Models**: Specialized models for military UAS analysis
+
+### Technical Architecture
+- **LLM Integration**: Ready for integration with leading language models
+- **Data Pipeline**: Seamless connection to existing sighting databases
+- **Scalable Design**: Modular architecture for easy feature expansion
+- **Security**: Military-grade security for sensitive intelligence data
 
 ## Location Search & Geocoding Integration
 
@@ -412,6 +467,7 @@ uas-reporting-tool/
 │   ├── index.css        # Global styles
 │   ├── Home.js          # Main reporting form component
 │   ├── RecentSightings.js # Sightings list and search component
+│   ├── Analysis.js      # AI-powered analysis placeholder with LLM roadmap
 │   ├── Admin.js         # Administrative panel with user and database management
 │   ├── TabNavigation.js # Left sidebar navigation component
 │   ├── Header.js        # Main header component with dynamic page titles
@@ -631,6 +687,17 @@ CREATE TABLE uas_sightings (
 4. **Click "Run Search"** → Backend processes filters
 5. **View results** with success message showing applied filters
 
+### AI Analysis Overview
+1. **Navigate to Analysis tab**
+2. **Review AI Features**:
+   - View planned LLM-powered analysis capabilities
+   - Explore development roadmap and timeline
+   - Understand future AI features and benefits
+3. **Development Status**:
+   - Track progress on AI integration
+   - View completed and planned features
+   - Stay updated on LLM implementation timeline
+
 ### Admin Panel Management
 1. **Navigate to Admin tab**
 2. **User Management**:
@@ -672,6 +739,9 @@ CREATE TABLE uas_sightings (
 - **Admin Interface**: Professional tabbed interface for system management
 - **Role Badges**: Color-coded user role indicators (Admin=Red, Analyst=Yellow, User=Green)
 - **Database Cards**: Clean table display with statistics and schema information
+- **AI Analysis Interface**: Professional placeholder with gradient cards and feature previews
+- **Development Timeline**: Visual progress tracking with animated status indicators
+- **Feature Cards**: Interactive hover effects and professional AI feature presentation
 
 ## Development
 

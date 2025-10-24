@@ -11,6 +11,8 @@ const Header = () => {
         return 'AERIE / REPORT';
       case '/sightings':
         return 'AERIE / SIGHTINGS';
+      case '/analysis':
+        return 'AERIE / ANALYSIS';
       case '/admin':
         return 'AERIE / ADMIN';
       default:
