@@ -675,6 +675,259 @@ body {
   border-top: 1px solid #404040;
 }
 
+/* Admin Page Styles */
+.admin-page {
+  min-height: 100vh;
+  background-color: #000000;
+  color: #E0E0E0;
+}
+
+.admin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #404040;
+}
+
+.admin-tab {
+  background: none;
+  border: none;
+  color: #E0E0E0;
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.admin-tab:hover {
+  color: #ffd700;
+  background-color: #2d2d2d;
+}
+
+.admin-tab.active {
+  color: #ffd700;
+  border-bottom-color: #ffd700;
+  background-color: #2d2d2d;
+}
+
+.tab-icon {
+  font-size: 16px;
+}
+
+.admin-content {
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  padding: 30px;
+  border: 1px solid #404040;
+}
+
+.admin-section {
+  margin-bottom: 40px;
+}
+
+.admin-section h3 {
+  color: #ffd700;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.admin-form {
+  background-color: #2d2d2d;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid #404040;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  color: #E0E0E0;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.users-table {
+  background-color: #2d2d2d;
+  border-radius: 6px;
+  border: 1px solid #404040;
+  overflow: hidden;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+  gap: 20px;
+  padding: 15px 20px;
+  background-color: #404040;
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+  gap: 20px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #404040;
+  align-items: center;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 60px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  color: #E0E0E0;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn.edit:hover {
+  background-color: #ffc107;
+  color: #1a1a1a;
+}
+
+.action-btn.delete:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.tables-list {
+  display: grid;
+  gap: 20px;
+}
+
+.table-card {
+  background-color: #2d2d2d;
+  border-radius: 6px;
+  border: 1px solid #404040;
+  overflow: hidden;
+}
+
+.table-card .table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #404040;
+  color: #ffd700;
+}
+
+.table-card .table-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.table-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+  color: #E0E0E0;
+}
+
+.table-columns {
+  padding: 20px;
+}
+
+.table-columns h5 {
+  color: #ffd700;
+  margin-bottom: 15px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.columns-list {
+  display: grid;
+  gap: 8px;
+}
+
+.column-item {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 15px;
+  padding: 8px 12px;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+  border: 1px solid #404040;
+  font-size: 13px;
+}
+
+.column-name {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.column-type {
+  color: #E0E0E0;
+  font-family: monospace;
+}
+
+.column-nullable {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.column-nullable.nullable {
+  background-color: #28a745;
+  color: white;
+}
+
+.column-nullable.not-null {
+  background-color: #dc3545;
+  color: white;
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .form-and-map-container {

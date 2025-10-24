@@ -40,17 +40,20 @@ const TabNavigation = () => {
           <span className="nav-arrow">›</span>
         </Link>
         
-        <div className="nav-item">
-          <FaFileAlt className="nav-icon" />
-          <span className="nav-text">ANALYTICS</span>
-          <span className="nav-arrow">›</span>
-        </div>
+            <div className="nav-item">
+              <FaFileAlt className="nav-icon" />
+              <span className="nav-text">ANALYSIS</span>
+              <span className="nav-arrow">›</span>
+            </div>
         
-        <div className="nav-item">
+        <Link 
+          to="/admin" 
+          className={`nav-item ${location.pathname === '/admin' ? 'active' : ''}`}
+        >
           <FaCog className="nav-icon" />
           <span className="nav-text">ADMIN</span>
           <span className="nav-arrow">›</span>
-        </div>
+        </Link>
       </div>
       
       <div className="sidebar-footer">

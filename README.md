@@ -30,6 +30,10 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **🆕 Professional Styling**: Military-grade UI with dark theme and yellow accents
 - **🆕 AI Integration**: Custom AI icon in sidebar footer
 - **🆕 Advanced Search**: Multi-criteria backend search with location radius and unit filtering
+- **🆕 Admin Panel**: Complete user management and database monitoring system
+- **🆕 Dynamic Page Titles**: Context-aware header titles that update with navigation
+- **🆕 User Management**: Add, edit, delete users with role-based permissions
+- **🆕 Database Manager**: Real-time PostgreSQL table monitoring and schema display
 
 ## Dashboard Interface
 
@@ -50,8 +54,8 @@ Real-time statistics displayed at the top of the Report page:
 ### Navigation Tabs
 - **REPORT**: Main sighting submission form with interactive map
 - **SIGHTINGS**: Advanced search and viewing of all reported sightings
-- **ANALYTICS**: Placeholder for future analytics features
-- **ADMIN**: Placeholder for future administrative functions
+- **ANALYSIS**: Placeholder for future analytics features
+- **ADMIN**: Complete administrative panel with user management and database tools
 
 ## Unit Selection Workflow
 
@@ -125,6 +129,34 @@ The application now includes a comprehensive unit selection system that captures
 - **Database Integration**: Unit data stored in PostgreSQL with sightings
 - **Search Integration**: Units are searchable in the Recent Sightings page
 - **Form Validation**: Both ASCC and unit must be selected to continue
+
+## Admin Panel
+
+The Admin panel provides comprehensive system administration capabilities with user management and database monitoring tools.
+
+### User Management
+- **Add New Users**: Create user accounts with username, email, role, and password
+- **Role Management**: Assign roles (User, Analyst, Admin) with color-coded badges
+- **Edit Users**: Modify existing user information and roles
+- **Delete Users**: Remove user accounts from the system
+- **User Table**: View all users with creation dates and role assignments
+
+### Database Manager
+- **Table Overview**: View all PostgreSQL tables with row counts and storage sizes
+- **Schema Display**: Complete column information including data types and constraints
+- **Table Statistics**: Real-time database metrics and storage information
+- **Column Details**: Detailed view of table structures with nullable constraints
+
+### Admin Features
+- **Tabbed Interface**: Clean navigation between User Management and Database Manager
+- **Professional Styling**: Consistent with AERIE dashboard theme
+- **Real-time Updates**: Live data display and management capabilities
+- **Role-based Access**: Different permission levels for different user types
+
+### Database Tables Monitored
+- **uas_sightings**: Main sightings table with 13 columns including unit tracking
+- **users**: User management table with authentication and role information
+- **Column Information**: Complete schema details for all database tables
 
 ## Location Search & Geocoding Integration
 
@@ -380,8 +412,9 @@ uas-reporting-tool/
 │   ├── index.css        # Global styles
 │   ├── Home.js          # Main reporting form component
 │   ├── RecentSightings.js # Sightings list and search component
+│   ├── Admin.js         # Administrative panel with user and database management
 │   ├── TabNavigation.js # Left sidebar navigation component
-│   ├── Header.js        # Main header component
+│   ├── Header.js        # Main header component with dynamic page titles
 │   └── UnitSelectionModal.js # Unit selection modal component
 ├── Dockerfile           # Backend container definition
 ├── docker-compose.yml   # Multi-service orchestration
@@ -598,6 +631,19 @@ CREATE TABLE uas_sightings (
 4. **Click "Run Search"** → Backend processes filters
 5. **View results** with success message showing applied filters
 
+### Admin Panel Management
+1. **Navigate to Admin tab**
+2. **User Management**:
+   - Add new users with username, email, role, and password
+   - Edit existing user information and roles
+   - Delete user accounts
+   - View all users with role assignments and creation dates
+3. **Database Manager**:
+   - View PostgreSQL table statistics and storage information
+   - Monitor database schema and column details
+   - Track table row counts and data types
+   - Review database structure and constraints
+
 ## Styling
 
 ### Dashboard Theme
@@ -622,6 +668,10 @@ CREATE TABLE uas_sightings (
 - **Search Interface**: Integrated search bars with clear buttons
 - **Map Integration**: Interactive map with coordinate selection
 - **Image Display**: Thumbnail previews for uploaded photos
+- **Dynamic Headers**: Context-aware page titles that update with navigation
+- **Admin Interface**: Professional tabbed interface for system management
+- **Role Badges**: Color-coded user role indicators (Admin=Red, Analyst=Yellow, User=Green)
+- **Database Cards**: Clean table display with statistics and schema information
 
 ## Development
 

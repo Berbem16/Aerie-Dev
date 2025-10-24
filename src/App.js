@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Home from './Home';
 import RecentSightings from './RecentSightings';
+import Admin from './Admin';
 import TabNavigation from './TabNavigation';
 import Header from './Header';
 
@@ -13,12 +14,13 @@ function App() {
         <TabNavigation />
         <div className="main-content">
           <Header />
-          <div className="content-area">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/sightings" element={<RecentSightings />} />
-            </Routes>
-          </div>
+              <div className="content-area">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/sightings" element={<RecentSightings />} />
+                  <Route path="/admin" element={<Admin />} />
+                </Routes>
+              </div>
         </div>
       </div>
     </Router>
