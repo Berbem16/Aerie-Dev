@@ -44,20 +44,7 @@ body {
   gap: 12px;
 }
 
-.hamburger-menu {
-  background: none;
-  border: none;
-  color: #ffffff;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.hamburger-menu:hover {
-  background-color: #404040;
-}
+/* Hamburger menu removed */
 
 .logo {
   display: flex;
@@ -205,9 +192,9 @@ body {
   font-size: 14px;
 }
 
-.subscribe-btn {
-  background-color: #ffd700;
-  color: #1a1a1a;
+.logout-btn {
+  background-color: #dc3545;
+  color: #ffffff;
   border: none;
   padding: 8px 16px;
   border-radius: 4px;
@@ -218,8 +205,8 @@ body {
   transition: background-color 0.2s;
 }
 
-.subscribe-btn:hover {
-  background-color: #ffed4e;
+.logout-btn:hover {
+  background-color: #c82333;
 }
 
 /* Content Area */

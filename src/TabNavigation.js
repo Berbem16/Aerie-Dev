@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   FaHome, 
   FaEye, 
-  FaBars, 
   FaStar,
   FaCog,
   FaFileAlt
@@ -15,15 +14,12 @@ const TabNavigation = () => {
 
   return (
     <nav className="sidebar">
-      <div className="sidebar-header">
-        <button className="hamburger-menu">
-          <FaBars />
-        </button>
-        <div className="logo">
-          <FaStar className="logo-icon" />
-          <span className="logo-text">AERIE</span>
-        </div>
-      </div>
+          <div className="sidebar-header">
+            <div className="logo">
+              <FaStar className="logo-icon" />
+              <span className="logo-text">AERIE</span>
+            </div>
+          </div>
       
       <div className="sidebar-nav">
         <Link 
