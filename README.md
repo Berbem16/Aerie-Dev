@@ -39,6 +39,13 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **🆕 Word Document Export**: Professional military-grade Word document generation for saved forms
 - **🆕 Enhanced Form Saving**: Local storage with professional document output
 
+### Recent Bug Fixes
+- **🔧 Fixed Analysis Tab**: Resolved missing FaRobot icon import error that was preventing the Analysis tab from loading
+- **🔧 Fixed Unit Search**: Improved unit search functionality with proper empty string handling and parameter normalization
+- **🔧 Enhanced Error Handling**: Added comprehensive logging and error handling to backend search endpoints
+- **🔧 Parameter Validation**: Normalized empty strings to prevent validation errors in search queries
+- **🔧 Improved Stability**: Better error handling for edge cases in search functionality
+
 ## Dashboard Interface
 
 AERIE features a modern, professional dashboard interface designed for military operations with a clean, intuitive layout.
@@ -618,6 +625,8 @@ docker-compose logs postgres
 - **API Documentation**: http://localhost:8000/docs
 - **Database**: Automatically connects to PostgreSQL
 - **Auto-restart**: Enabled
+- **Logging**: Enhanced logging for search operations and error tracking
+- **Error Handling**: Comprehensive error handling with detailed logging
 
 ### React Frontend
 - **Port**: 3001 (changed from 3000 to avoid conflicts)
@@ -860,6 +869,17 @@ For production use, consider adding Alembic for database migrations.
    docker-compose down -v
    docker-compose up --build
    ```
+
+6. **Analysis tab not loading**:
+   - Fixed in latest update (missing icon import)
+   - If issue persists, restart the frontend container
+   - Check browser console for any import errors
+
+7. **Unit search returning 422 error**:
+   - Fixed in latest update (empty string handling)
+   - Ensure you're entering a valid unit name
+   - Check backend logs for detailed error messages
+   - Restart backend service if issues persist
 
 ### Reset Everything
 ```bash

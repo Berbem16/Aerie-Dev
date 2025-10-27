@@ -7,6 +7,16 @@ from typing import List, Optional
 from pathlib import Path
 from datetime import datetime, timezone
 import math
+import logging
+import os
+import json
+from fastapi.responses import StreamingResponse
+
+try:
+    from cerebras.cloud.sdk import Cerebras
+    CEREBRAS_AVAILABLE = True
+except ImportError:
+    CEREBRAS_AVAILABLE = False
 
 import models, schemas, searches, database
 from database import Base, engine, ensure_schema, get_db
@@ -97,42 +107,59 @@ def search_sightings_combined(
     latitude:   Optional[float] = Query(None),
     longitude:  Optional[float] = Query(None),
     radius_km:  Optional[float] = Query(None),
-    unit:       Optional[str] = Query(None, description="Unit name to search for"),
+    unit: Optional[str] = Query(None, description="Unit name to search for"),
     db: Session = Depends(database.get_db),
 ):
-    # Start with a base query
-    q = db.query(models.UASSighting)
+    try:
+        # Normalize empty strings to None
+        if unit == "":
+            unit = None
+        if start_time == "":
+            start_time = None
+        if end_time == "":
+            end_time = None
+        
+        logging.info(f"Search called with: start_time={start_time}, end_time={end_time}, unit={unit}, latitude={latitude}, longitude={longitude}, radius_km={radius_km}")
+        
+        # Start with a base query
+        q = db.query(models.UASSighting)
 
-    # Time filtering (only if both provided)
-    if start_time is not None and end_time is not None:
-        try:
-            start_dt = datetime.fromisoformat(start_time)
-            end_dt = datetime.fromisoformat(end_time)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS)")
-        if end_dt < start_dt:
-            raise HTTPException(status_code=400, detail="end_time must be >= start_time")
-        q = q.filter(and_(models.UASSighting.time >= start_dt,
-                          models.UASSighting.time <= end_dt))
+        # Time filtering (only if both provided)
+        if start_time is not None and end_time is not None:
+            try:
+                start_dt = datetime.fromisoformat(start_time)
+                end_dt = datetime.fromisoformat(end_time)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS)")
+            if end_dt < start_dt:
+                raise HTTPException(status_code=400, detail="end_time must be >= start_time")
+            q = q.filter(and_(models.UASSighting.time >= start_dt,
+                              models.UASSighting.time <= end_dt))
 
-    # Unit filtering
-    if unit is not None:
-        q = q.filter(models.UASSighting.unit.ilike(f"%{unit}%"))
+        # Unit filtering
+        if unit is not None and unit.strip():
+            q = q.filter(models.UASSighting.unit.ilike(f"%{unit}%"))
 
-    # Execute DB query (time-filtered or all)
-    results = q.all()
+        # Execute DB query (time-filtered or all)
+        results = q.all()
+        logging.info(f"Query returned {len(results)} results")
 
-    # Proximity filtering (only if all three provided)
-    if latitude is not None and longitude is not None and radius_km is not None:
-        # Reuse haversine from searches.py
-        filtered = []
-        for s in results:
-            dist = searches.haversine(latitude, longitude, s.latitude, s.longitude)
-            if dist <= radius_km:
-                filtered.append(s)
-        return filtered
+        # Proximity filtering (only if all three provided)
+        if latitude is not None and longitude is not None and radius_km is not None:
+            # Reuse haversine from searches.py
+            filtered = []
+            for s in results:
+                dist = searches.haversine(latitude, longitude, s.latitude, s.longitude)
+                if dist <= radius_km:
+                    filtered.append(s)
+            return filtered
 
-    return results
+        return results
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Search error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 @app.get("/sightings/search/mgrs", response_model=List[schemas.UASSighting])
 def search_sightings_by_mgrs(
@@ -142,6 +169,12 @@ def search_sightings_by_mgrs(
     end_time:   Optional[str] = Query(None, description="ISO e.g. 2025-09-11T16:00"),
     db: Session = Depends(database.get_db),
 ):
+    # Normalize empty strings to None
+    if start_time == "":
+        start_time = None
+    if end_time == "":
+        end_time = None
+    
     # Validate time args (both or neither)
     q = db.query(models.UASSighting)
     if (start_time is None) ^ (end_time is None):
@@ -185,6 +218,54 @@ def search_sightings_by_mgrs(
     # Sort by distance ascending for nicer UX
     inside.sort(key=lambda s: searches.haversine(center_lat, center_lon, s.latitude, s.longitude))
     return inside
+
+# LLM Chat endpoint
+@app.post("/llm/chat")
+async def llm_chat(request_data: dict):
+    if not CEREBRAS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Cerebras SDK not available. Please install: pip install cerebras-cloud-sdk")
+    
+    try:
+        messages = request_data.get("messages", [])
+        model = request_data.get("model", "qwen-3-235b-a22b-instruct-2507")
+        temperature = request_data.get("temperature", 0.7)
+        top_p = request_data.get("top_p", 0.8)
+        max_completion_tokens = request_data.get("max_completion_tokens", 20000)
+        
+        # Initialize Cerebras client
+        api_key = os.environ.get("CEREBRAS_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="CEREBRAS_API_KEY environment variable not set")
+        
+        client = Cerebras(api_key=api_key)
+        
+        async def generate_response():
+            try:
+                stream = client.chat.completions.create(
+                    messages=messages,
+                    model=model,
+                    stream=True,
+                    max_completion_tokens=max_completion_tokens,
+                    temperature=temperature,
+                    top_p=top_p
+                )
+                
+                for chunk in stream:
+                    if chunk.choices and len(chunk.choices) > 0:
+                        content = chunk.choices[0].delta.content or ""
+                        if content:
+                            yield f"data: {json.dumps({'content': content})}\n\n"
+                
+                yield f"data: {json.dumps({'done': True})}\n\n"
+            except Exception as e:
+                error_msg = f"Error: {str(e)}"
+                yield f"data: {json.dumps({'error': error_msg})}\n\n"
+        
+        return StreamingResponse(generate_response(), media_type="text/event-stream")
+        
+    except Exception as e:
+        logging.error(f"LLM chat error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"LLM chat error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

@@ -25,6 +25,7 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://uas_user:uas_password@postgres:5432/uas_reporting
+      CEREBRAS_API_KEY: ${CEREBRAS_API_KEY:-csk-emf9ykp4n9eyc592npcvxc9xedmwhf3mt89enxhr2fn5xpew}
     depends_on:
       postgres:
         condition: service_healthy
