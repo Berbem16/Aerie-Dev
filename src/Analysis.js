@@ -24,13 +24,17 @@ const Analysis = () => {
   }, [messages]);
 
   const sendMessage = async () => {
+    // Only send if there's a message and we're not already loading
     if (!inputMessage.trim() || isLoading) return;
 
+    const messageToSend = inputMessage.trim();
+    
     const userMessage = {
       role: 'user',
-      content: inputMessage
+      content: messageToSend
     };
 
+    // Add user message to UI immediately
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
