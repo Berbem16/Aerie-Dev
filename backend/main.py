@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Query, APIRouter
+from fastapi import FastAPI, HTTPException, Depends, Query, APIRouter, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -21,6 +21,30 @@ except ImportError:
 import models, schemas, searches, database
 from database import Base, engine, ensure_schema, get_db
 from uploads import router as uploads_router
+from time import time
+from collections import defaultdict
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# Simple rate limiter - track requests per IP
+rate_limit_cache = defaultdict(list)
+RATE_LIMIT_WINDOW = 60  # seconds
+MAX_REQUESTS_PER_WINDOW = 10
+
+def check_rate_limit(ip: str) -> bool:
+    """Check if IP has exceeded rate limit"""
+    now = time()
+    # Remove old entries outside the window
+    rate_limit_cache[ip] = [req_time for req_time in rate_limit_cache[ip] if now - req_time < RATE_LIMIT_WINDOW]
+    
+    # Check if limit exceeded
+    if len(rate_limit_cache[ip]) >= MAX_REQUESTS_PER_WINDOW:
+        return False
+    
+    # Add current request
+    rate_limit_cache[ip].append(now)
+    return True
 
 # Create database tables
 app = FastAPI(title="UAS Reporting Tool", version="1.0.0")
@@ -231,9 +255,22 @@ def search_sightings_by_mgrs(
 
 # LLM Chat endpoint
 @app.post("/llm/chat")
-async def llm_chat(request_data: dict):
+async def llm_chat(request: Request, request_data: dict):
+    logging.info("LLM chat endpoint called")
+    logging.info(f"CEREBRAS_AVAILABLE: {CEREBRAS_AVAILABLE}")
+    
+    # Get client IP for rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    
+    # Check rate limit
+    if not check_rate_limit(client_ip):
+        logging.warning(f"Rate limit exceeded for IP: {client_ip}")
+        raise HTTPException(status_code=429, detail="Too many requests. Please wait before trying again.")
+    
     if not CEREBRAS_AVAILABLE:
-        raise HTTPException(status_code=503, detail="Cerebras SDK not available. Please install: pip install cerebras-cloud-sdk")
+        error_msg = "Cerebras SDK not available. Please install: pip install cerebras-cloud-sdk"
+        logging.error(error_msg)
+        raise HTTPException(status_code=503, detail=error_msg)
     
     try:
         messages = request_data.get("messages", [])
@@ -242,15 +279,21 @@ async def llm_chat(request_data: dict):
         top_p = request_data.get("top_p", 0.8)
         max_completion_tokens = request_data.get("max_completion_tokens", 20000)
         
+        logging.info(f"Model: {model}, Messages count: {len(messages)}")
+        
         # Initialize Cerebras client
         api_key = os.environ.get("CEREBRAS_API_KEY")
         if not api_key:
-            raise HTTPException(status_code=500, detail="CEREBRAS_API_KEY environment variable not set")
+            error_msg = "CEREBRAS_API_KEY environment variable not set"
+            logging.error(error_msg)
+            raise HTTPException(status_code=500, detail=error_msg)
         
+        logging.info("Initializing Cerebras client...")
         client = Cerebras(api_key=api_key)
         
         async def generate_response():
             try:
+                logging.info("Starting Cerebras chat completion...")
                 stream = client.chat.completions.create(
                     messages=messages,
                     model=model,
@@ -267,14 +310,27 @@ async def llm_chat(request_data: dict):
                             yield f"data: {json.dumps({'content': content})}\n\n"
                 
                 yield f"data: {json.dumps({'done': True})}\n\n"
+                logging.info("Chat completion finished successfully")
             except Exception as e:
-                error_msg = f"Error: {str(e)}"
-                yield f"data: {json.dumps({'error': error_msg})}\n\n"
+                error_msg = str(e)
+                logging.error(f"Error in generate_response: {error_msg}")
+                
+                # Check if it's a rate limit error
+                if "429" in error_msg or "too_many_requests" in error_msg.lower() or "queue" in error_msg.lower():
+                    detailed_error = "The AI service is currently experiencing high traffic. Please try again in a few moments."
+                elif "401" in error_msg or "Unauthorized" in error_msg:
+                    detailed_error = "Authentication failed. Please check the API key configuration."
+                elif "503" in error_msg or "Service Unavailable" in error_msg:
+                    detailed_error = "The AI service is temporarily unavailable. Please try again later."
+                else:
+                    detailed_error = f"Sorry, an error occurred: {error_msg}"
+                
+                yield f"data: {json.dumps({'error': detailed_error})}\n\n"
         
         return StreamingResponse(generate_response(), media_type="text/event-stream")
         
     except Exception as e:
-        logging.error(f"LLM chat error: {str(e)}")
+        logging.error(f"LLM chat error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"LLM chat error: {str(e)}")
 
 if __name__ == "__main__":

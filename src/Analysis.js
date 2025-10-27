@@ -1,28 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FaBrain, FaChartLine, FaLightbulb, FaRobot, FaPaperPlane, FaTrash } from 'react-icons/fa';
+import { FaBrain, FaRobot, FaPaperPlane } from 'react-icons/fa';
 import './App.css';
 
-const CHAT_STORAGE_KEY = 'aerie_ai_chat_history';
-
-const getInitialMessages = () => {
-  const savedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
-  if (savedMessages) {
-    try {
-      return JSON.parse(savedMessages);
-    } catch (e) {
-      console.error('Error loading chat history:', e);
-    }
-  }
-  return [
+const Analysis = () => {
+  const [messages, setMessages] = useState([
     {
       role: 'assistant',
       content: 'Hello! I\'m your AI assistant for UAS sighting analysis. I can help you analyze patterns, provide insights, and answer questions about unmanned aerial system sightings. How can I assist you today?'
     }
-  ];
-};
-
-const Analysis = () => {
-  const [messages, setMessages] = useState(getInitialMessages);
+  ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
@@ -33,27 +19,9 @@ const Analysis = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Save messages to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-  }, [messages]);
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const clearConversation = () => {
-    if (window.confirm('Are you sure you want to clear the entire conversation history?')) {
-      const defaultMessage = [
-        {
-          role: 'assistant',
-          content: 'Hello! I\'m your AI assistant for UAS sighting analysis. I can help you analyze patterns, provide insights, and answer questions about unmanned aerial system sightings. How can I assist you today?'
-        }
-      ];
-      setMessages(defaultMessage);
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(defaultMessage));
-    }
-  };
 
   const sendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -116,7 +84,13 @@ const Analysis = () => {
                 });
               }
               if (parsed.done) break;
-              if (parsed.error) throw new Error(parsed.error);
+              if (parsed.error) {
+                setMessages(prev => [...prev, {
+                  role: 'assistant',
+                  content: parsed.error
+                }]);
+                return;
+              }
             } catch (e) {
               console.error('Error parsing SSE data:', e);
             }
@@ -138,7 +112,7 @@ const Analysis = () => {
       console.error('Error:', error);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
+        content: error.message || 'Sorry, I encountered an error. Please try again.'
       }]);
     } finally {
       setIsLoading(false);
@@ -156,39 +130,16 @@ const Analysis = () => {
     <div className="analysis-page">
       <main className="App-main">
         <div className="analysis-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <div className="analysis-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div className="analysis-icon">
-                <FaBrain />
-              </div>
-              <div>
-                <h1>AI-Powered Analysis</h1>
-                <p className="analysis-subtitle">
-                  Advanced LLM-driven insights and intelligence for UAS sightings
-                </p>
-              </div>
+          <div className="analysis-header" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="analysis-icon">
+              <FaBrain />
             </div>
-            {messages.length > 1 && (
-              <button
-                onClick={clearConversation}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: '#dc3545',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: 'bold'
-                }}
-                title="Clear conversation history"
-              >
-                <FaTrash /> Clear Chat
-              </button>
-            )}
+            <div>
+              <h1>AI-Powered Analysis</h1>
+              <p className="analysis-subtitle">
+                Advanced LLM-driven insights and intelligence for UAS sightings
+              </p>
+            </div>
           </div>
 
           <div className="analysis-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
