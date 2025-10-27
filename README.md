@@ -20,6 +20,7 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **Image Upload**: Support for multiple photo attachments
 - **Responsive Design**: Works on desktop and mobile devices
 - **Real-Time Updates**: Live dashboard statistics and form validation
+- **Browser Storage**: AI chat history and form data persisted locally
 
 ### New Features (Latest Updates)
 - **🆕 Dashboard Redesign**: Left sidebar navigation with AERIE branding
@@ -34,10 +35,18 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **🆕 Dynamic Page Titles**: Context-aware header titles that update with navigation
 - **🆕 User Management**: Add, edit, delete users with role-based permissions
 - **🆕 Database Manager**: Real-time PostgreSQL table monitoring and schema display
-- **🆕 AI Analysis Placeholder**: Professional LLM integration roadmap and feature preview
+- **🆕 AI Analysis Integration**: Live LLM chat interface powered by Cerebras API
+- **🆕 Persistent Chat History**: AI conversation saved to browser storage for continuity across sessions
 - **🆕 Development Timeline**: Visual progress tracking for AI feature development
 - **🆕 Word Document Export**: Professional military-grade Word document generation for saved forms
 - **🆕 Enhanced Form Saving**: Local storage with professional document output
+- **🆕 Map Visualization Tab**: Dedicated map view with military symbol display and interactive search
+- **🆕 Military Symbol Integration**: Automatic rendering of MIL-STD-2525 symbols on map markers
+- **🆕 Circle Search Functionality**: Draw circles on map to search for sightings within radius
+- **🆕 Interactive Symbol Popups**: Click any symbol on map to view detailed sighting information
+- **🆕 Sightings Management**: Admin panel tab to view and delete any sighting from database
+- **🆕 Real-Time AI Chat**: Conversational AI assistant for UAS sighting analysis and intelligence
+- **🆕 Clear Chat Button**: Easily reset conversation history with confirmation dialog
 
 ### Recent Bug Fixes
 - **🔧 Fixed Analysis Tab**: Resolved missing FaRobot icon import error that was preventing the Analysis tab from loading
@@ -66,8 +75,9 @@ Real-time statistics displayed at the top of the Report page:
 ### Navigation Tabs
 - **REPORT**: Main sighting submission form with interactive map
 - **SIGHTINGS**: Advanced search and viewing of all reported sightings
-- **ANALYSIS**: AI-powered analysis placeholder with LLM integration roadmap
-- **ADMIN**: Complete administrative panel with user management and database tools
+- **MAP**: Interactive map visualization with military symbols and circle search functionality
+- **ANALYSIS**: AI-powered chat interface with live Cerebras LLM integration
+- **ADMIN**: Complete administrative panel with user, sightings, and database management
 
 ## Unit Selection Workflow
 
@@ -213,7 +223,7 @@ After selecting ASCC and Unit, users have two options:
 
 ## Admin Panel
 
-The Admin panel provides comprehensive system administration capabilities with user management and database monitoring tools.
+The Admin panel provides comprehensive system administration capabilities with user management, sightings management, and database monitoring tools.
 
 ### User Management
 - **Add New Users**: Create user accounts with username, email, role, and password
@@ -222,6 +232,13 @@ The Admin panel provides comprehensive system administration capabilities with u
 - **Delete Users**: Remove user accounts from the system
 - **User Table**: View all users with creation dates and role assignments
 
+### Sightings Management
+- **View All Sightings**: Complete list of all reported UAS sightings in the system
+- **Sighting Details**: Display type, location, time, unit, and other key information
+- **Delete Sightings**: Remove sightings from the database with confirmation dialog
+- **Real-Time Count**: See total number of sightings in the system
+- **Quick Management**: Efficient interface for managing all sighting records
+
 ### Database Manager
 - **Table Overview**: View all PostgreSQL tables with row counts and storage sizes
 - **Schema Display**: Complete column information including data types and constraints
@@ -229,7 +246,7 @@ The Admin panel provides comprehensive system administration capabilities with u
 - **Column Details**: Detailed view of table structures with nullable constraints
 
 ### Admin Features
-- **Tabbed Interface**: Clean navigation between User Management and Database Manager
+- **Tabbed Interface**: Clean navigation between User, Sightings, and Database Management
 - **Professional Styling**: Consistent with AERIE dashboard theme
 - **Real-time Updates**: Live data display and management capabilities
 - **Role-based Access**: Different permission levels for different user types
@@ -239,58 +256,36 @@ The Admin panel provides comprehensive system administration capabilities with u
 - **users**: User management table with authentication and role information
 - **Column Information**: Complete schema details for all database tables
 
-## AI-Powered Analysis (Coming Soon)
+## AI-Powered Analysis
 
-The Analysis tab provides a comprehensive overview of the upcoming AI-powered intelligence system that will leverage Large Language Models (LLMs) for advanced UAS sighting analysis.
+The Analysis tab provides a live AI-powered chat interface powered by the Cerebras Cloud SDK, enabling real-time conversational analysis of UAS sighting data using Large Language Models.
 
-### Planned AI Features
+### Current Features
 
-#### Pattern Analysis
-- **Sighting Patterns**: AI-powered analysis of UAS sighting frequency and distribution
-- **Geographic Trends**: Identification of high-risk areas and operational patterns
-- **Temporal Analysis**: Time-based pattern recognition and trend analysis
-- **Threat Assessment**: Automated evaluation of potential security threats
+#### Interactive Chat Interface
+- **Live AI Chat**: Real-time conversation with LLM-powered assistant
+- **Streaming Responses**: AI responses stream in progressively for natural interaction
+- **Conversational Analysis**: Ask questions about UAS sightings, patterns, and threats
+- **Intelligent Insights**: AI generates actionable intelligence and recommendations
+- **Natural Language**: Ask questions in plain English
+- **Persistent History**: Full conversation automatically saved to browser storage
+- **Session Continuity**: Chat history preserved across page refreshes and navigation
+- **Clear Conversation**: Reset chat history with confirmation dialog when needed
 
-#### Intelligence Reports
-- **Automated Generation**: AI-generated intelligence reports based on sighting data
-- **Threat Assessments**: Comprehensive security evaluations and recommendations
-- **Actionable Insights**: Clear guidance for operational decision-making
-- **Custom Reports**: Tailored analysis for specific units or geographic areas
+#### Integration Details
+- **Cerebras Cloud SDK**: Powered by Cerebras Cloud API (cerebras-cloud-sdk v1.56.1)
+- **Model**: qwen-3-235b-a22b-instruct-2507
+- **Streaming Responses**: Server-Sent Events (SSE) for real-time updates
+- **High Token Limit**: Up to 20,000 completion tokens per response
+- **Configurable Parameters**: Temperature, top_p, and max tokens adjustable
+- **Professional UI**: Chat interface with user and AI message distinction
 
-#### Predictive Analytics
-- **Activity Prediction**: Machine learning models to forecast potential UAS activity
-- **Risk Modeling**: Identification of high-probability threat scenarios
-- **Early Warning**: Proactive alerts for potential security concerns
-- **Trend Forecasting**: Long-term pattern prediction and strategic planning
-
-#### Natural Language Queries
-- **Conversational Interface**: Ask questions about data in natural language
-- **Intelligent Responses**: AI-generated answers with relevant insights
-- **Data Exploration**: Interactive querying of sighting databases
-- **Visual Analytics**: AI-driven charts and visualizations
-
-### Development Roadmap
-
-#### ✅ Completed
-- **Data Collection System**: UAS sighting data collection and storage
-- **Unit Tracking**: ASCC and unit-based reporting capabilities
-- **Search Infrastructure**: Advanced search and filtering systems
-
-#### 🔄 In Development
-- **LLM Integration**: Large Language Model integration for intelligent analysis
-- **AI Pipeline**: Data processing and analysis infrastructure
-- **Natural Language Processing**: Query understanding and response generation
-
-#### ⏳ Planned
-- **Advanced Analytics**: Predictive modeling and automated intelligence reports
-- **Real-time Analysis**: Live threat assessment and monitoring
-- **Custom AI Models**: Specialized models for military UAS analysis
-
-### Technical Architecture
-- **LLM Integration**: Ready for integration with leading language models
-- **Data Pipeline**: Seamless connection to existing sighting databases
-- **Scalable Design**: Modular architecture for easy feature expansion
-- **Security**: Military-grade security for sensitive intelligence data
+#### Use Cases
+- **Pattern Analysis**: Ask AI to identify sighting patterns and trends
+- **Threat Assessment**: Request intelligence analysis of recent sightings
+- **Strategic Recommendations**: Get AI-powered operational insights
+- **Data Exploration**: Query and analyze sighting data in natural language
+- **Report Generation**: Request AI-generated intelligence summaries
 
 ## Location Search & Geocoding Integration
 
@@ -396,6 +391,53 @@ Use the Advanced Search section for complex queries:
 - **Location + Unit**: Find sightings within 10km of coordinates from "1st TSC"
 - **All Filters**: Time window + location radius + specific unit
 - **Unit Only**: Search for "21st TSC" → Shows all sightings from that unit
+
+## Map Visualization
+
+The Map tab provides an interactive visualization of UAS sightings using military symbols, enabling geographic analysis and spatial intelligence.
+
+### Key Features
+
+#### Military Symbol Display
+- **MIL-STD-2525 Symbols**: All sightings displayed as standard military symbols using milsymbol library
+- **Automatic Rendering**: Symbol codes from database converted to visual markers
+- **Professional Markers**: Military-grade symbology instead of generic map pins
+- **Standard Compliant**: Symbols follow NATO and US military standards
+
+#### Interactive Symbol Popups
+- **Click to View**: Click any symbol to see detailed sighting information
+- **Complete Details**: Type, time, location, unit, and description displayed
+- **Visual Feedback**: Symbols highlight when clicked
+- **Context-Aware**: Popup shows full sighting context
+
+#### Circle Search Functionality
+- **Draw Circles**: Use the circle drawing tool to select areas on the map
+- **Radius-Based Search**: Automatic search for sightings within drawn circle
+- **Visual Feedback**: Yellow circle overlay shows search area
+- **Real-Time Results**: Markers update instantly based on search
+- **Clear Search**: Button to reset and show all sightings
+
+#### Map Features
+- **Full-Screen Display**: Map takes up entire available space for maximum visibility
+- **Zoom & Pan**: Standard map controls for detailed exploration
+- **OpenStreetMap Tiles**: High-quality worldwide map rendering
+- **Responsive Design**: Adapts to different screen sizes
+
+### How to Use the Map
+
+1. **Navigate to Map Tab**: Click "MAP" in the left sidebar
+2. **View All Sightings**: All sightings displayed as military symbols automatically
+3. **Click Symbols**: Click any symbol to view details in a popup
+4. **Draw Circle to Search**: Use the circle tool in top-right to search specific areas
+5. **Clear Search**: Click "Clear Search" button when shown to reset
+6. **Zoom and Pan**: Navigate the map to explore different regions
+
+### Benefits
+- **Visual Intelligence**: See geographic patterns and clustering of sightings
+- **Military Symbols**: Professional symbology for standard compliance
+- **Spatial Analysis**: Understand the geographic distribution of UAS activity
+- **Interactive Exploration**: Click symbols to investigate specific incidents
+- **Area-Specific Search**: Draw circles to focus on specific geographic regions
 
 ### How to Use Advanced Search
 
@@ -530,7 +572,7 @@ The application includes pgAdmin for easy database management and administration
 uas-reporting-tool/
 ├── backend/
 │   ├── __init__.py      # Python package init
-│   ├── main.py          # FastAPI backend server with search endpoints
+│   ├── main.py          # FastAPI backend server with search endpoints and LLM integration
 │   ├── database.py      # Database configuration
 │   ├── models.py        # SQLAlchemy models (includes unit fields)
 │   ├── schemas.py       # Pydantic schemas (includes unit validation)
@@ -546,15 +588,16 @@ uas-reporting-tool/
 │   ├── index.css        # Global styles
 │   ├── Home.js          # Main reporting form component with Word document export
 │   ├── RecentSightings.js # Sightings list and search component
-│   ├── Analysis.js      # AI-powered analysis placeholder with LLM roadmap
-│   ├── Admin.js         # Administrative panel with user and database management
+│   ├── Map.js           # Interactive map with military symbols and circle search
+│   ├── Analysis.js      # AI-powered chat interface with live Cerebras integration
+│   ├── Admin.js         # Administrative panel with user, sightings, and database management
 │   ├── TabNavigation.js # Left sidebar navigation component
 │   ├── Header.js        # Main header component with dynamic page titles
 │   └── UnitSelectionModal.js # Unit selection modal component
 ├── Dockerfile           # Backend container definition
-├── docker-compose.yml   # Multi-service orchestration
-├── package.json         # Node.js dependencies (includes react-router-dom, react-icons)
-├── requirements.txt      # Python dependencies
+├── docker-compose.yml   # Multi-service orchestration (includes CEREBRAS_API_KEY)
+├── package.json         # Node.js dependencies (includes react-router-dom, react-icons, leaflet, milsymbol)
+├── requirements.txt     # Python dependencies (includes cerebras-cloud-sdk)
 ├── pgadmin/             # pgAdmin configuration
 │   └── servers.json     # Auto-connect server configuration
 ├── start.bat            # Windows startup script
@@ -627,11 +670,16 @@ docker-compose logs postgres
 - **Auto-restart**: Enabled
 - **Logging**: Enhanced logging for search operations and error tracking
 - **Error Handling**: Comprehensive error handling with detailed logging
+- **LLM Integration**: Live Cerebras Cloud SDK integration for AI chat
+- **Environment**: CEREBRAS_API_KEY configured for AI functionality
 
 ### React Frontend
 - **Port**: 3001 (changed from 3000 to avoid conflicts)
 - **Hot Reload**: Enabled
 - **API Calls**: Direct calls to backend using environment variables
+- **Mapping**: Interactive Leaflet map with draw tools and military symbols
+- **AI Chat**: Real-time LLM chat interface with streaming responses
+- **Military Symbols**: MIL-STD-2525 symbols rendered with milsymbol library
 
 ### pgAdmin Database Management
 - **Port**: 5050
@@ -648,6 +696,15 @@ docker-compose logs postgres
 - `GET /sightings` - Get all sightings (with pagination)
 - `POST /sightings` - Create a new sighting (includes unit data)
 - `GET /sightings/{id}` - Get a specific sighting
+- `DELETE /sightings/{id}` - Delete a specific sighting
+
+### LLM Endpoints
+- `POST /llm/chat` - Chat with AI assistant (streaming):
+  - `messages` - Conversation history array
+  - `model` - Model name (default: qwen-3-235b-a22b-instruct-2507)
+  - `temperature` - Response creativity (default: 0.7)
+  - `top_p` - Nucleus sampling (default: 0.8)
+  - `max_completion_tokens` - Maximum tokens (default: 20000)
 
 ### Search Endpoints
 - `GET /sightings/search` - Advanced search with multiple filters:
@@ -770,16 +827,43 @@ CREATE TABLE uas_sightings (
 4. **Click "Run Search"** → Backend processes filters
 5. **View results** with success message showing applied filters
 
-### AI Analysis Overview
+### Map Visualization
+1. **Navigate to Map tab**
+2. **View All Sightings**:
+   - See all sightings displayed as military symbols on the map
+   - Symbols automatically rendered from symbol codes in database
+   - Full-screen map for maximum visibility
+3. **Explore Sightings**:
+   - Click any military symbol to view detailed information
+   - Popup shows type, time, location, unit, and description
+4. **Search by Area**:
+   - Use circle drawing tool in top-right of map
+   - Draw circle around area of interest
+   - View only sightings within that radius
+5. **Clear Search**: Click "Clear Search" button to reset to all sightings
+
+### AI Analysis Chat
 1. **Navigate to Analysis tab**
-2. **Review AI Features**:
-   - View planned LLM-powered analysis capabilities
-   - Explore development roadmap and timeline
-   - Understand future AI features and benefits
-3. **Development Status**:
-   - Track progress on AI integration
-   - View completed and planned features
-   - Stay updated on LLM implementation timeline
+2. **Start Conversation**:
+   - Chat interface ready for natural language queries
+   - Previous conversations automatically loaded
+   - Ask questions about UAS sightings, patterns, or threats
+3. **Ask Questions**:
+   - "Analyze recent sighting patterns"
+   - "What are the high-risk areas?"
+   - "Provide intelligence report on UAS activity"
+4. **View Responses**:
+   - AI responses stream in real-time
+   - Full conversation history maintained
+   - Responses include actionable intelligence
+5. **Continue Conversation**:
+   - Follow up with related questions
+   - Build on previous responses
+   - Get increasingly detailed insights
+6. **Persistent Storage**:
+   - All conversations automatically saved
+   - History preserved across browser sessions
+   - Clear chat button to reset when needed
 
 ### Admin Panel Management
 1. **Navigate to Admin tab**
@@ -788,7 +872,12 @@ CREATE TABLE uas_sightings (
    - Edit existing user information and roles
    - Delete user accounts
    - View all users with role assignments and creation dates
-3. **Database Manager**:
+3. **Sightings Management**:
+   - View all UAS sightings in system
+   - See total count of sightings
+   - Delete any sighting with confirmation dialog
+   - Manage sighting database entries
+4. **Database Manager**:
    - View PostgreSQL table statistics and storage information
    - Monitor database schema and column details
    - Track table row counts and data types

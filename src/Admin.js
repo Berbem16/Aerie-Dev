@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { FaUserPlus, FaUserEdit, FaDatabase, FaEye, FaTrash, FaEdit } from 'react-icons/fa';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FaUserPlus, FaUserEdit, FaDatabase, FaEye, FaTrash, FaEdit, FaMapMarkerAlt } from 'react-icons/fa';
 import './App.css';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [tables, setTables] = useState([]);
+  const [sightings, setSightings] = useState([]);
   const [newUser, setNewUser] = useState({
     username: '',
     email: '',
@@ -113,6 +114,54 @@ const Admin = () => {
     }
   };
 
+  // Fetch sightings
+  const fetchSightings = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/sightings`);
+      if (response.ok) {
+        const data = await response.json();
+        setSightings(data);
+      }
+    } catch (error) {
+      console.error('Error fetching sightings:', error);
+    }
+  }, [API_URL]);
+
+  // Delete sighting
+  const handleDeleteSighting = async (sightingId) => {
+    if (!window.confirm('Are you sure you want to delete this sighting?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/sightings/${sightingId}`, {
+        method: 'DELETE'
+      });
+      
+      if (response.ok) {
+        setSightings(sightings.filter(sighting => sighting.id !== sightingId));
+        alert('Sighting deleted successfully');
+      } else {
+        alert('Failed to delete sighting');
+      }
+    } catch (error) {
+      console.error('Error deleting sighting:', error);
+      alert('Error deleting sighting');
+    }
+  };
+
+  // Function to format datetime for display
+  const formatDateTime = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString();
+  };
+
+  useEffect(() => {
+    if (activeTab === 'sightings') {
+      fetchSightings();
+    }
+  }, [activeTab, fetchSightings]);
+
   return (
     <div className="admin-page">
       <main className="App-main">
@@ -124,6 +173,13 @@ const Admin = () => {
             >
               <FaUserPlus className="tab-icon" />
               User Management
+            </button>
+            <button 
+              className={`admin-tab ${activeTab === 'sightings' ? 'active' : ''}`}
+              onClick={() => setActiveTab('sightings')}
+            >
+              <FaMapMarkerAlt className="tab-icon" />
+              Sightings Management
             </button>
             <button 
               className={`admin-tab ${activeTab === 'database' ? 'active' : ''}`}
@@ -277,6 +333,49 @@ const Admin = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'sightings' && (
+            <div className="admin-content">
+              <div className="admin-section">
+                <h3>Manage Sightings</h3>
+                <p style={{ color: '#999', marginBottom: '1rem' }}>
+                  Total Sightings: {sightings.length}
+                </p>
+                <div className="sightings-table">
+                  <div className="table-header">
+                    <div style={{ flex: '1' }}>Type</div>
+                    <div style={{ flex: '1' }}>Location</div>
+                    <div style={{ flex: '1' }}>Time</div>
+                    <div style={{ flex: '1' }}>Unit</div>
+                    <div style={{ width: '100px' }}>Actions</div>
+                  </div>
+                  {sightings.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
+                      No sightings found
+                    </div>
+                  ) : (
+                    sightings.map(sighting => (
+                      <div key={sighting.id} className="table-row">
+                        <div>{sighting.type_of_sighting}</div>
+                        <div>{sighting.location_name}</div>
+                        <div>{formatDateTime(sighting.time)}</div>
+                        <div>{sighting.unit || '-'}</div>
+                        <div className="action-buttons">
+                          <button 
+                            className="action-btn delete"
+                            onClick={() => handleDeleteSighting(sighting.id)}
+                            title="Delete Sighting"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

@@ -67,6 +67,16 @@ def get_sighting(sighting_id: int, db: Session = Depends(database.get_db)):
     if sighting is None:
         raise HTTPException(status_code=404, detail="Sighting not found")
     return sighting
+
+@app.delete("/sightings/{sighting_id}")
+def delete_sighting(sighting_id: int, db: Session = Depends(database.get_db)):
+    sighting = db.query(models.UASSighting).filter(models.UASSighting.id == sighting_id).first()
+    if sighting is None:
+        raise HTTPException(status_code=404, detail="Sighting not found")
+    db.delete(sighting)
+    db.commit()
+    return {"message": "Sighting deleted successfully"}
+
 # Search UAS sightings by time range
 @app.get("/sightings/search/time", response_model=List[schemas.UASSighting])
 def search_sightings_by_time(

@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   FaHome, 
-  FaEye, 
+  FaEye,
+  FaMap,
   FaStar,
   FaCog,
   FaFileAlt
@@ -40,14 +41,23 @@ const TabNavigation = () => {
           <span className="nav-arrow">›</span>
         </Link>
         
-            <Link 
-              to="/analysis" 
-              className={`nav-item ${location.pathname === '/analysis' ? 'active' : ''}`}
-            >
-              <FaFileAlt className="nav-icon" />
-              <span className="nav-text">ANALYSIS</span>
-              <span className="nav-arrow">›</span>
-            </Link>
+        <Link 
+          to="/map" 
+          className={`nav-item ${location.pathname === '/map' ? 'active' : ''}`}
+        >
+          <FaMap className="nav-icon" />
+          <span className="nav-text">MAP</span>
+          <span className="nav-arrow">›</span>
+        </Link>
+        
+        <Link 
+          to="/analysis" 
+          className={`nav-item ${location.pathname === '/analysis' ? 'active' : ''}`}
+        >
+          <FaFileAlt className="nav-icon" />
+          <span className="nav-text">ANALYSIS</span>
+          <span className="nav-arrow">›</span>
+        </Link>
         
         <Link 
           to="/admin" 
