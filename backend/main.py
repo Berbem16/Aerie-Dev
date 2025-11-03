@@ -253,6 +253,107 @@ def search_sightings_by_mgrs(
     inside.sort(key=lambda s: searches.haversine(center_lat, center_lon, s.latitude, s.longitude))
     return inside
 
+# Chat Session Management Endpoints
+@app.post("/chat/sessions", response_model=schemas.ChatSession)
+def create_chat_session(session_data: schemas.ChatSessionCreate, db: Session = Depends(database.get_db)):
+    """Create a new chat session"""
+    db_session = models.ChatSession(**session_data.dict())
+    db.add(db_session)
+    db.commit()
+    db.refresh(db_session)
+    return db_session
+
+@app.get("/chat/sessions", response_model=List[schemas.ChatSessionSummary])
+def get_chat_sessions(user_name: str = "default_user", db: Session = Depends(database.get_db)):
+    """Get all chat sessions for a user, ordered by most recent"""
+    sessions = db.query(models.ChatSession).filter(
+        models.ChatSession.user_name == user_name
+    ).order_by(models.ChatSession.updated_at.desc()).all()
+    
+    # Convert to summary format with message count
+    summaries = []
+    for session in sessions:
+        summary = schemas.ChatSessionSummary(
+            id=session.id,
+            title=session.title,
+            user_name=session.user_name,
+            created_at=session.created_at,
+            updated_at=session.updated_at,
+            message_count=len(session.messages)
+        )
+        summaries.append(summary)
+    
+    return summaries
+
+@app.get("/chat/sessions/{session_id}", response_model=schemas.ChatSession)
+def get_chat_session(session_id: int, db: Session = Depends(database.get_db)):
+    """Get a specific chat session with all messages"""
+    session = db.query(models.ChatSession).filter(models.ChatSession.id == session_id).first()
+    if session is None:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    return session
+
+@app.put("/chat/sessions/{session_id}", response_model=schemas.ChatSession)
+def update_chat_session(
+    session_id: int,
+    session_data: schemas.ChatSessionBase,
+    db: Session = Depends(database.get_db)
+):
+    """Update a chat session (e.g., change title)"""
+    session = db.query(models.ChatSession).filter(models.ChatSession.id == session_id).first()
+    if session is None:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    
+    if session_data.title is not None:
+        session.title = session_data.title
+    session.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(session)
+    return session
+
+@app.delete("/chat/sessions/{session_id}")
+def delete_chat_session(session_id: int, db: Session = Depends(database.get_db)):
+    """Delete a chat session and all its messages"""
+    session = db.query(models.ChatSession).filter(models.ChatSession.id == session_id).first()
+    if session is None:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    db.delete(session)
+    db.commit()
+    return {"message": "Chat session deleted successfully"}
+
+@app.post("/chat/sessions/{session_id}/messages", response_model=schemas.ChatMessage)
+def save_chat_message(
+    session_id: int,
+    message_data: schemas.ChatMessageBase,
+    db: Session = Depends(database.get_db)
+):
+    """Save a chat message to a session"""
+    # Verify session exists
+    session = db.query(models.ChatSession).filter(models.ChatSession.id == session_id).first()
+    if session is None:
+        raise HTTPException(status_code=404, detail="Chat session not found")
+    
+    # Create message
+    db_message = models.ChatMessage(
+        session_id=session_id,
+        **message_data.dict()
+    )
+    db.add(db_message)
+    
+    # Update session timestamp
+    session.updated_at = datetime.now(timezone.utc)
+    
+    # Auto-generate title from first user message if not set
+    if not session.title and message_data.role == "user":
+        title = message_data.content[:50]  # First 50 chars
+        if len(message_data.content) > 50:
+            title += "..."
+        session.title = title
+    
+    db.commit()
+    db.refresh(db_message)
+    return db_message
+
 # LLM Chat endpoint
 @app.post("/llm/chat")
 async def llm_chat(request: Request, request_data: dict):
