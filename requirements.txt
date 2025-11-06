@@ -8,3 +8,4 @@ alembic==1.8.1
 mgrs==1.4.5
 Pillow==10.4.0
 cerebras-cloud-sdk==1.56.1
+httpx==0.24.1

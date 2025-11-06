@@ -10,7 +10,8 @@ import math
 import logging
 import os
 import json
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
+import httpx
 
 try:
     from cerebras.cloud.sdk import Cerebras
@@ -50,9 +51,11 @@ def check_rate_limit(ip: str) -> bool:
 app = FastAPI(title="UAS Reporting Tool", version="1.0.0")
 
 # Enable CORS
+# Allow web and mobile app connections
+# Note: For production, replace allow_origins=["*"] with specific origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=["*"],  # Allows all origins (for mobile apps and web)
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,6 +70,33 @@ app.include_router(uploads_router)
 
 Base.metadata.create_all(bind=engine)
 ensure_schema()
+
+# Proxy endpoint for MoW API script (to avoid CORS issues)
+@app.get("/proxy/mow.js")
+async def proxy_mow_script():
+    """
+    Proxy endpoint to fetch and serve MoW API script.
+    This avoids CORS issues when loading the script from map.nga.mil
+    """
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            response = await client.get("https://map.nga.mil/api/mow.js")
+            response.raise_for_status()
+            
+            return Response(
+                content=response.content,
+                media_type="application/javascript",
+                headers={
+                    "Cache-Control": "public, max-age=3600",
+                    "Access-Control-Allow-Origin": "*"
+                }
+            )
+    except Exception as e:
+        logging.error(f"Error proxying MoW script: {str(e)}")
+        raise HTTPException(
+            status_code=502,
+            detail=f"Failed to fetch MoW script: {str(e)}"
+        )
 
 @app.get("/")
 async def root():

@@ -1,19 +1,9 @@
+/* global MoW */
 import React, { useState, useRef, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import './App.css';
 import UnitSelectionModal from './UnitSelectionModal';
-
-// Custom component to handle map clicks
-function MapClickHandler({ onMapClick }) {
-  useMapEvents({
-    click: (event) => {
-      onMapClick(event);
-    },
-  });
-  return null;
-}
+import { setMapBasemap } from './mowHelpers';
+import { initMoW } from './mowLoader';
 
 const Home = () => {
   // Function to get current date and time in the correct format for datetime-local input
@@ -47,6 +37,8 @@ const Home = () => {
   const [locationInputValue, setLocationInputValue] = useState(''); // Store the raw input value
   const [isSearchingLocation, setIsSearchingLocation] = useState(false); // Loading state for location search
   const mapRef = useRef();
+  const mapInstanceRef = useRef(null);
+  const markerLayerRef = useRef(null);
   // Pictures feature state
   const [photoFiles, setPhotoFiles] = useState([]);
   const [photoPreviews, setPhotoPreviews] = useState([]);
@@ -160,8 +152,8 @@ const Home = () => {
             setClickedLocation({ lat: latitude, lng: longitude });
             
             // Zoom in on the location for better view
-            if (mapRef.current) {
-              mapRef.current.setView([latitude, longitude], 15);
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.setCenter([latitude, longitude], 15);
             }
             
             setCoordinateSource('input');
@@ -209,8 +201,8 @@ const Home = () => {
             setClickedLocation({ lat: latitude, lng: longitude });
             
             // Zoom in on the location for better view
-            if (mapRef.current) {
-              mapRef.current.setView([latitude, longitude], 15);
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.setCenter([latitude, longitude], 15);
             }
             
             setCoordinateSource('input');
@@ -241,8 +233,8 @@ const Home = () => {
         setClickedLocation({ lat: fallbackCoords.lat, lng: fallbackCoords.lng });
         
         // Zoom in on the location for better view
-        if (mapRef.current) {
-          mapRef.current.setView([fallbackCoords.lat, fallbackCoords.lng], 15);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setCenter([fallbackCoords.lat, fallbackCoords.lng], 15);
         }
         
         setCoordinateSource('input');
@@ -271,8 +263,8 @@ const Home = () => {
         setClickedLocation({ lat: fallbackCoords.lat, lng: fallbackCoords.lng });
         
         // Zoom in on the location for better view
-        if (mapRef.current) {
-          mapRef.current.setView([fallbackCoords.lat, fallbackCoords.lng], 15);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setCenter([fallbackCoords.lat, fallbackCoords.lng], 15);
         }
         
         setCoordinateSource('input');
@@ -323,9 +315,15 @@ const Home = () => {
 
   // Function to handle map clicks and update coordinates
   const handleMapClick = async (event) => {
-    console.log('Map clicked!', event.latlng);
-    const lat = event.latlng.lat;
-    const lng = event.latlng.lng;
+    console.log('Map clicked!', event);
+    // MoW API click events may have different structure - adjust based on actual API
+    const coords = event.coordinate || event.latlng || (event.lng !== undefined ? { lat: event.lat, lng: event.lng } : null);
+    if (!coords) {
+      console.error('Unable to extract coordinates from click event');
+      return;
+    }
+    const lat = coords.lat || coords[1];
+    const lng = coords.lng || coords[0];
     
     setFormData(prev => ({
       ...prev,
@@ -402,16 +400,143 @@ const Home = () => {
 
   // Function to handle map zoom controls
   const handleZoomIn = () => {
-    if (mapRef.current) {
-      mapRef.current.setZoom(mapRef.current.getZoom() + 1);
+    if (mapInstanceRef.current) {
+      const currentZoom = mapInstanceRef.current.getZoom();
+      mapInstanceRef.current.setZoom(currentZoom + 1);
     }
   };
 
   const handleZoomOut = () => {
-    if (mapRef.current) {
-      mapRef.current.setZoom(mapRef.current.getZoom() - 1);
+    if (mapInstanceRef.current) {
+      const currentZoom = mapInstanceRef.current.getZoom();
+      mapInstanceRef.current.setZoom(currentZoom - 1);
     }
   };
+
+  // Initialize MoW map for Home page
+  useEffect(() => {
+    // Wait for the DOM element to be available
+    const mapElement = document.getElementById('home-mow-map');
+    if (!mapElement) {
+      console.warn('Map element #home-mow-map not found in DOM yet');
+      return;
+    }
+
+    console.log('Initializing MoW map on element:', mapElement);
+
+    initMoW((error) => {
+      if (error) {
+        console.error('Failed to initialize MoW:', error);
+        setMessage('Failed to load map. Please check your network connection and ensure you can access map.nga.mil');
+        return;
+      }
+
+      if (typeof window.MoW === 'undefined') {
+        console.error('MoW is undefined after initMoW callback');
+        return;
+      }
+
+      console.log('Creating MoW.Map instance...');
+      const mapOptions = {
+        target: 'home-mow-map'
+      };
+
+      try {
+        mapInstanceRef.current = new window.MoW.Map(mapOptions, () => {
+        console.log('Home MoW map loaded');
+        
+        try {
+          // Set a default basemap using predefined ID
+          if (window.MoW && window.MoW.Basemap && window.MoW.Basemap.ID) {
+            mapInstanceRef.current.setBasemap(window.MoW.Basemap.ID.STREETS);
+            console.log('Set basemap to STREETS');
+          } else {
+            try {
+              mapInstanceRef.current.setBasemap('streets');
+            } catch (e) {
+              console.warn('Could not set basemap:', e);
+            }
+          }
+        } catch (basemapError) {
+          console.warn('Error setting basemap:', basemapError);
+        }
+        
+        // Center on default location
+        try {
+          mapInstanceRef.current.setCenter([mapCoordinates.lat, mapCoordinates.lng], mapZoom);
+          console.log('Map centered on coordinates');
+        } catch (centerError) {
+          console.error('Error setting map center:', centerError);
+        }
+        
+        // Create a layer for the clicked marker
+        const markerOverlay = {
+          id: 'clicked-marker',
+          name: 'Selected Location',
+          type: 'feature',
+          visible: true
+        };
+
+        mapInstanceRef.current.addLayer(markerOverlay);
+        markerLayerRef.current = markerOverlay;
+
+        // Add click handler - MoW API click handling may vary
+        // This is a placeholder - adjust based on actual MoW API documentation
+        console.log('Map initialized - click events need to be configured per MoW API docs');
+      });
+      } catch (mapError) {
+        console.error('Error creating MoW.Map:', mapError);
+        setMessage(`Failed to create map: ${mapError.message}`);
+      }
+    }, 15000); // 15 second timeout
+
+    return () => {
+      if (markerLayerRef.current && mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.removeLayer(markerLayerRef.current);
+        } catch (e) {
+          console.error('Error removing marker layer:', e);
+        }
+      }
+    };
+  }, []);
+
+  // Update marker when clicked location changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markerLayerRef.current || !clickedLocation) return;
+
+    mapInstanceRef.current.layerReady(markerLayerRef.current, () => {
+      // Clear existing markers
+      try {
+        mapInstanceRef.current.clearFeatures(markerLayerRef.current.id);
+      } catch (e) {
+        console.error('Error clearing features:', e);
+      }
+
+      // Add new marker
+      const markerFeature = {
+        id: 'clicked-point',
+        geometry: {
+          type: 'Point',
+          coordinates: [clickedLocation.lng, clickedLocation.lat]
+        },
+        properties: {
+          title: 'Selected Location',
+          description: `Coordinates: ${clickedLocation.lat.toFixed(6)}, ${clickedLocation.lng.toFixed(6)}`,
+          icon: '📍' // Simple marker - you can use milsymbol here too
+        }
+      };
+
+      mapInstanceRef.current.addFeatures(markerLayerRef.current, [markerFeature]);
+    });
+  }, [clickedLocation]);
+
+  // Update map center when coordinates change
+  useEffect(() => {
+    if (mapInstanceRef.current && mapCoordinates) {
+      mapInstanceRef.current.setCenter([mapCoordinates.lat, mapCoordinates.lng], mapZoom);
+    }
+  }, [mapCoordinates, mapZoom]);
 
   // Function to handle location search button click
   const handleLocationSearch = (e) => {
@@ -1034,29 +1159,15 @@ const Home = () => {
               <small>Click anywhere on the map to get coordinates</small>
             </div>
             <div className="map-tile">
-              <MapContainer
-                center={mapCoordinates}
-                zoom={mapZoom}
-                style={{ height: '500px', width: '500px' }}
-                whenCreated={(map) => { mapRef.current = map;}}
-              >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              <div 
+                id="home-mow-map"
+                ref={mapRef}
+                style={{ 
+                  height: '500px', 
+                  width: '500px',
+                  borderRadius: '8px'
+                }}
               />
-              {clickedLocation && (
-                <Marker 
-                  position={clickedLocation}
-                  icon={L.divIcon({
-                    className: 'red-pin-marker',
-                    html: '<div style="font-size: 24px; color: red; text-align: center; line-height: 1;">📍</div>',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24]
-                  })}
-                />
-              )}
-              <MapClickHandler onMapClick={handleMapClick} />
-            </MapContainer>
             </div>
           </div>
         </div>

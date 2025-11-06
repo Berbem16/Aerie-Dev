@@ -10,6 +10,31 @@
       content="AERIE - Aerial Event Reporting & Intelligence Exchange - UAS Reporting Tool"
     />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Try direct load first, fallback to proxy if CORS fails -->
+    <script 
+      type="text/javascript" 
+      src="https://map.nga.mil/api/mow.js"
+      onerror="console.warn('Direct MoW script load failed, trying proxy...'); loadMoWProxy();"
+      onload="console.log('MoW API script loaded successfully from direct source'); window.MoWLoaded = true;"
+    ></script>
+    <script>
+      // Fallback function to load via proxy if direct load fails
+      function loadMoWProxy() {
+        if (window.MoWLoaded) return; // Already loaded
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'http://localhost:8000/proxy/mow.js';
+        script.onload = function() {
+          console.log('MoW API script loaded successfully from proxy');
+          window.MoWLoaded = true;
+        };
+        script.onerror = function() {
+          console.error('Failed to load MoW API script from both direct source and proxy. May need VPN or network access to map.nga.mil');
+          window.MoWLoadError = true;
+        };
+        document.head.appendChild(script);
+      }
+    </script>
     <title>AERIE - UAS Reporting Tool</title>
   </head>
   <body>
