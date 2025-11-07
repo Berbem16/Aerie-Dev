@@ -213,7 +213,7 @@ const Analysis = () => {
         },
         body: JSON.stringify({
           messages: messagesForAPI,
-          model: 'qwen-3-235b-a22b-instruct-2507',
+          model: 'gpt-oss-120b',
           temperature: 0.7,
           top_p: 0.8,
           max_completion_tokens: 20000

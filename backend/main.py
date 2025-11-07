@@ -405,7 +405,7 @@ async def llm_chat(request: Request, request_data: dict):
     
     try:
         messages = request_data.get("messages", [])
-        model = request_data.get("model", "qwen-3-235b-a22b-instruct-2507")
+        model = request_data.get("model", "gpt-oss-120b")
         temperature = request_data.get("temperature", 0.7)
         top_p = request_data.get("top_p", 0.8)
         max_completion_tokens = request_data.get("max_completion_tokens", 20000)
