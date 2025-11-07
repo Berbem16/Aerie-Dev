@@ -251,7 +251,7 @@ const Map = () => {
                 >
                   <Popup>
                     <div style={{ minWidth: '200px' }}>
-                      <h4 style={{ margin: '0 0 0.5rem 0', color: '#FFFF00' }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', color: '#000000' }}>
                         {sighting.type_of_sighting}
                       </h4>
                       <p style={{ margin: '0.25rem 0', fontSize: '0.875rem' }}>
