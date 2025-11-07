@@ -77,7 +77,7 @@ Real-time statistics displayed at the top of the Report page:
 ### Navigation Tabs
 - **REPORT**: Main sighting submission form with interactive map
 - **SIGHTINGS**: Advanced search and viewing of all reported sightings
-- **MAP**: Interactive map visualization with military symbols and circle search functionality
+- **MAP**: Interactive map visualization with Leaflet, military symbols, and circle search functionality
 - **ANALYSIS**: AI-powered chat interface with live Cerebras LLM integration (gpt-oss-120b model)
 - **ADMIN**: Complete administrative panel with user, sightings, and database management
 

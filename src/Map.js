@@ -1,9 +1,47 @@
-/* global MoW */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, Circle, Popup, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
+import L from 'leaflet';
+import 'leaflet-draw';
 import './App.css';
 import ms from 'milsymbol';
-import { createBasemap, setMapBasemap } from './mowHelpers';
-import { initMoW, isMoWAvailable } from './mowLoader';
+
+// Fix default marker icons for leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+// Create a custom Leaflet icon from milsymbol
+const createMilitarySymbolIcon = (symbolCode) => {
+  const code = symbolCode || '100310000000000000000000000000';
+  
+  try {
+    const symbol = new ms.Symbol(code, {
+      size: 50,
+      strokeWidth: 2,
+      frame: true,
+      fill: true
+    });
+    
+    const svgString = symbol.asSVG();
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(svgBlob);
+    
+    return L.icon({
+      iconUrl: url,
+      iconSize: [50, 50],
+      iconAnchor: [25, 25],
+      popupAnchor: [0, -25]
+    });
+  } catch (error) {
+    console.error('Error creating military symbol:', error);
+    return L.Icon.Default.prototype;
+  }
+};
 
 const Map = () => {
   const [sightings, setSightings] = useState([]);
@@ -11,12 +49,12 @@ const Map = () => {
   const [usingBackendResults, setUsingBackendResults] = useState(false);
   const [message, setMessage] = useState('');
   const [circleCenter, setCircleCenter] = useState(null);
+  const [circleRadius, setCircleRadius] = useState(null);
+  const [militaryIcons, setMilitaryIcons] = useState({});
   const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const featureLayersRef = useRef({});
+  const drawControlsRef = useRef(null);
 
   const API_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace(/\/$/, '');
-
 
   // Function to format datetime for display
   const formatDateTime = useCallback((dateTimeString) => {
@@ -72,203 +110,90 @@ const Map = () => {
     }
   }, [API_URL]);
 
-  // Initialize MoW map
-  useEffect(() => {
-    // Wait for the DOM element to be available
-    const mapElement = document.getElementById('mow-map');
-    if (!mapElement) {
-      console.warn('Map element #mow-map not found in DOM yet');
-      return;
-    }
+  // Function to handle circle drawing
+  const handleCircleComplete = useCallback((lat, lng, radius) => {
+    setCircleCenter({ lat, lng });
+    setCircleRadius(radius);
+    searchByCircle(lat, lng, radius);
+  }, [searchByCircle]);
 
-    console.log('Initializing MoW map on element:', mapElement);
-
-    initMoW((error) => {
-      if (error) {
-        console.error('Failed to initialize MoW:', error);
-        setMessage('Failed to load map. Please check your network connection and ensure you can access map.nga.mil');
-        return;
-      }
-
-      if (typeof window.MoW === 'undefined') {
-        console.error('MoW is undefined after initMoW callback');
-        return;
-      }
-
-      console.log('Creating MoW.Map instance...');
-      const mapOptions = {
-        target: 'mow-map'
-      };
-
-      try {
-        mapInstanceRef.current = new window.MoW.Map(mapOptions, () => {
-        console.log('MoW map loaded');
+  // Map component with draw controls
+  const MapWithDrawControls = () => {
+    useMapEvents({
+      ready() {
+        const map = mapRef.current;
+        if (!map) return;
         
-        try {
-          // Set a default basemap using predefined ID
-          // Available basemap IDs: MoW.Basemap.ID.STREETS, MoW.Basemap.ID.BEST_AVAILABLE, etc.
-          if (window.MoW && window.MoW.Basemap && window.MoW.Basemap.ID) {
-            // Try to set a streets basemap first
-            mapInstanceRef.current.setBasemap(window.MoW.Basemap.ID.STREETS);
-            console.log('Set basemap to STREETS');
-          } else {
-            // Fallback: try common basemap IDs
-            try {
-              mapInstanceRef.current.setBasemap('streets');
-            } catch (e) {
-              console.warn('Could not set basemap, trying default:', e);
-            }
-          }
-        } catch (basemapError) {
-          console.warn('Error setting basemap:', basemapError);
+        if (drawControlsRef.current) {
+          map.removeControl(drawControlsRef.current);
         }
-        
-        // Center on default location (Kaiserslautern area)
-        try {
-          mapInstanceRef.current.setCenter([49.4521, 7.5545], 10);
-          console.log('Map centered on default location');
-        } catch (centerError) {
-          console.error('Error setting map center:', centerError);
-        }
-        
-        // Load sightings after map is ready
-        fetchSightings();
-        });
-      } catch (mapError) {
-        console.error('Error creating MoW.Map:', mapError);
-        setMessage(`Failed to create map: ${mapError.message}`);
-      }
-    }, 15000); // 15 second timeout
 
-    return () => {
-      // Cleanup if needed
-      if (mapInstanceRef.current) {
-        // MoW doesn't have explicit destroy, but we can clear features
-        Object.values(featureLayersRef.current).forEach(layer => {
-          if (layer && mapInstanceRef.current) {
-            try {
-              mapInstanceRef.current.removeLayer(layer);
-            } catch (e) {
-              console.error('Error removing layer:', e);
-            }
+        const drawControl = new L.Control.Draw({
+          position: 'topright',
+          draw: {
+            polyline: false,
+            polygon: false,
+            rectangle: false,
+            marker: false,
+            circlemarker: false,
+            circle: true
+          },
+          edit: {
+            featureGroup: new L.FeatureGroup(),
+            remove: false
           }
         });
-        featureLayersRef.current = {};
-      }
-    };
-  }, [fetchSightings]);
 
-  // Add sightings to map
-  useEffect(() => {
-    if (!mapInstanceRef.current || filteredSightings.length === 0) return;
+        map.addControl(drawControl);
+        drawControlsRef.current = drawControl;
 
-    // Clear existing layers
-    Object.values(featureLayersRef.current).forEach(layer => {
-      if (layer) {
-        try {
-          mapInstanceRef.current.removeLayer(layer);
-        } catch (e) {
-          console.error('Error removing layer:', e);
-        }
+        map.on(L.Draw.Event.CREATED, (e) => {
+          const layer = e.layer;
+          const center = layer.getLatLng();
+          const radius = layer.getRadius();
+          const radiusKm = radius / 1000;
+
+          handleCircleComplete(center.lat, center.lng, radiusKm);
+        });
+
+        map.on(L.Draw.Event.EDITED, (e) => {
+          const layers = e.layers;
+          layers.eachLayer((layer) => {
+            if (layer instanceof L.Circle) {
+              const center = layer.getLatLng();
+              const radius = layer.getRadius();
+              const radiusKm = radius / 1000;
+
+              handleCircleComplete(center.lat, center.lng, radiusKm);
+            }
+          });
+        });
       }
     });
-    featureLayersRef.current = {};
 
-    // Create feature overlay for sightings
-    const sightingOverlay = {
-      id: 'sightings-overlay',
-      name: 'UAS Sightings',
-      type: 'feature',
-      visible: true
-    };
-
-    try {
-      mapInstanceRef.current.addLayer(sightingOverlay);
-
-      mapInstanceRef.current.layerReady(sightingOverlay, () => {
-        // Create features for each sighting
-        const features = filteredSightings.map((sighting) => {
-          const symbolCode = sighting.symbol_code || '100310000000000000000000000000';
-          
-          // Create military symbol using milsymbol
-          const symbol = new ms.Symbol(symbolCode, {
-            size: 50,
-            strokeWidth: 2,
-            frame: true,
-            fill: true
-          });
-
-          const svgString = symbol.asSVG();
-          
-          return {
-            id: `sighting-${sighting.id}`,
-            geometry: {
-              type: 'Point',
-              coordinates: [sighting.longitude, sighting.latitude]
-            },
-            properties: {
-              title: sighting.type_of_sighting,
-              description: `
-                <div style="min-width: 200px;">
-                  <h4 style="margin: 0 0 0.5rem 0; color: #000000;">
-                    ${sighting.type_of_sighting}
-                  </h4>
-                  <p style="margin: 0.25rem 0; font-size: 0.875rem;">
-                    <strong>Time:</strong> ${formatDateTime(sighting.time)}
-                  </p>
-                  <p style="margin: 0.25rem 0; font-size: 0.875rem;">
-                    <strong>Location:</strong> ${sighting.location_name}
-                  </p>
-                  ${sighting.unit ? `<p style="margin: 0.25rem 0; font-size: 0.875rem;"><strong>Unit:</strong> ${sighting.unit}</p>` : ''}
-                  ${sighting.description ? `<p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #ccc; max-height: 100px; overflow: auto;">${sighting.description}</p>` : ''}
-                </div>
-              `,
-              symbolCode: symbolCode,
-              icon: svgString
-            }
-          };
-        });
-
-        // Add features to the layer
-        mapInstanceRef.current.addFeatures(sightingOverlay, features);
-        featureLayersRef.current['sightings-overlay'] = sightingOverlay;
-
-        // Fit map to show all sightings if we have any
-        if (features.length > 0) {
-          mapInstanceRef.current.layerReady(sightingOverlay, () => {
-            try {
-              const extent = mapInstanceRef.current.getFeatureLayerExtent(sightingOverlay.id);
-              if (extent) {
-                mapInstanceRef.current.fitExtent(extent);
-              }
-            } catch (e) {
-              console.error('Error fitting extent:', e);
-            }
-          });
-        }
-      });
-    } catch (error) {
-      console.error('Error adding sightings to map:', error);
-    }
-  }, [filteredSightings, formatDateTime]);
-
-  // Draw circle functionality
-  const drawCircle = useCallback(() => {
-    if (!mapInstanceRef.current) return;
-
-    // MoW doesn't have built-in circle drawing, so we'll use a simple click-based approach
-    // For now, we'll add a button that allows users to click on map to set center
-    // Then prompt for radius
-    alert('Circle drawing: Click on the map to set center, then enter radius in km');
-    
-    // Note: MoW API click events may vary - this is a placeholder
-    // You may need to check MoW API documentation for exact event handling
-    console.log('Circle drawing mode - check MoW API docs for click event handling');
-  }, []);
+    return null;
+  };
 
   useEffect(() => {
     fetchSightings();
   }, [fetchSightings]);
+
+  // Effect to create military icons for sightings
+  useEffect(() => {
+    if (sightings.length === 0) return;
+    
+    const icons = {};
+    sightings.forEach((sighting) => {
+      if (sighting.symbol_code) {
+        try {
+          icons[sighting.id] = createMilitarySymbolIcon(sighting.symbol_code);
+        } catch (error) {
+          console.error('Error creating icon for sighting', sighting.id, error);
+        }
+      }
+    });
+    setMilitaryIcons(icons);
+  }, [sightings]);
 
   return (
     <div className="map-page">
@@ -283,6 +208,7 @@ const Map = () => {
               className="clear-search-btn" 
               onClick={() => {
                 setCircleCenter(null);
+                setCircleRadius(null);
                 setUsingBackendResults(false);
                 setFilteredSightings(sightings);
                 setMessage('');
@@ -301,36 +227,64 @@ const Map = () => {
             </button>
           </div>
         )}
-
-        {/* Circle Draw Button */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
-          <button 
-            onClick={drawCircle}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#FFFF00',
-              color: '#000',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}
-          >
-            Draw Circle Search
-          </button>
-        </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: 'calc(100vh - 250px)' }}>
-          <div 
-            id="mow-map" 
-            ref={mapRef}
-            style={{ 
-              height: '100%', 
-              width: '100%', 
-              borderRadius: '8px',
-              position: 'relative'
-            }}
-          />
+          <div style={{ height: '100%', width: '100%' }}>
+            <MapContainer
+              center={[49.4521, 7.5545]}
+              zoom={10}
+              style={{ height: '100%', width: '100%', borderRadius: '8px' }}
+              whenCreated={(mapInstance) => { mapRef.current = mapInstance; }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              />
+              <MapWithDrawControls />
+              
+              {/* Show markers for filtered sightings */}
+              {filteredSightings.map((sighting) => (
+                <Marker
+                  key={sighting.id}
+                  position={[sighting.latitude, sighting.longitude]}
+                  icon={militaryIcons[sighting.id] || L.Icon.Default.prototype}
+                >
+                  <Popup>
+                    <div style={{ minWidth: '200px' }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', color: '#000000' }}>
+                        {sighting.type_of_sighting}
+                      </h4>
+                      <p style={{ margin: '0.25rem 0', fontSize: '0.875rem' }}>
+                        <strong>Time:</strong> {formatDateTime(sighting.time)}
+                      </p>
+                      <p style={{ margin: '0.25rem 0', fontSize: '0.875rem' }}>
+                        <strong>Location:</strong> {sighting.location_name}
+                      </p>
+                      {sighting.unit && (
+                        <p style={{ margin: '0.25rem 0', fontSize: '0.875rem' }}>
+                          <strong>Unit:</strong> {sighting.unit}
+                        </p>
+                      )}
+                      {sighting.description && (
+                        <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', color: '#ccc', maxHeight: '100px', overflow: 'auto' }}>
+                          {sighting.description}
+                        </p>
+                      )}
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+              
+              {/* Show circle if drawn */}
+              {circleCenter && circleRadius && (
+                <Circle
+                  center={[circleCenter.lat, circleCenter.lng]}
+                  radius={circleRadius * 1000}
+                  pathOptions={{ color: '#FFFF00', fillColor: '#FFFF00', fillOpacity: 0.2 }}
+                />
+              )}
+            </MapContainer>
+          </div>
         </div>
       </main>
     </div>

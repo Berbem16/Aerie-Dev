@@ -69,9 +69,8 @@ expo build:android
 ## Features
 
 - **Report Sightings**: Submit UAS sightings with location, photos, and descriptions
-- **View Sightings**: Browse and search all reported sightings
-- **Map Visualization**: View sightings on an interactive map
-- **AI Analysis**: Chat with AI assistant for sighting analysis
+- **View Sightings**: View 10 most recent sightings (no search functionality)
+- **Map Visualization**: View sightings on an interactive map with circle search
 - **Offline Support**: Forms saved locally using AsyncStorage
 - **Camera Integration**: Take photos directly from the app
 - **GPS Integration**: Get current location automatically
@@ -91,9 +90,7 @@ mobile/
 │   ├── screens/
 │   │   ├── HomeScreen.js
 │   │   ├── SightingsScreen.js
-│   │   ├── MapScreen.js
-│   │   ├── AnalysisScreen.js
-│   │   └── AdminScreen.js
+│   │   └── MapScreen.js
 │   └── utils/
 │       ├── storage.js    # AsyncStorage utilities
 │       ├── location.js   # Location services
@@ -139,6 +136,6 @@ These permissions are requested at runtime when needed.
 
 - The app uses Expo for easier development and deployment
 - For production builds, consider using EAS Build (Expo Application Services)
-- Some features (like Word document export) are not available in mobile app
-- Admin panel is simplified for mobile interface
+- Some features (like Word document export, AI Analysis, Admin panel) are not available in mobile app
+- Mobile app focuses on core reporting and viewing features only
 

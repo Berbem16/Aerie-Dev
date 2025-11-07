@@ -25,10 +25,8 @@ mobile/
 │   │   └── UnitSelectionModal.js
 │   ├── screens/
 │   │   ├── HomeScreen.js     # Report sightings
-│   │   ├── SightingsScreen.js
-│   │   ├── MapScreen.js
-│   │   ├── AnalysisScreen.js
-│   │   └── AdminScreen.js
+│   │   ├── SightingsScreen.js # View 10 most recent sightings
+│   │   └── MapScreen.js      # Interactive map
 │   └── utils/
 │       ├── storage.js        # AsyncStorage utilities
 │       ├── location.js       # GPS/location services
@@ -59,7 +57,7 @@ mobile/
 - **Mobile**: React Native components (`TextInput`, `Picker`, `TouchableOpacity`)
 
 #### Maps
-- **Web**: Leaflet with MoW API integration
+- **Web**: Leaflet with OpenStreetMap tiles
 - **Mobile**: React Native Maps with native map providers
 
 ### 4. Mobile-Specific Features
@@ -76,7 +74,6 @@ mobile/
 
 #### Offline Support
 - Forms saved locally using AsyncStorage
-- Chat history persisted across app restarts
 - Data syncs when connection is restored
 
 ### 5. Backend Changes
@@ -87,14 +84,14 @@ Updated `backend/main.py` to allow mobile app connections:
 ```python
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (for mobile apps)
+    allow_origins=["http://localhost:3000", "http://localhost:3001"],  # Web app origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 ```
 
-**Note**: For production, replace `allow_origins=["*"]` with specific origins for security.
+**Note**: For production, update `allow_origins` to include your production web app URLs for security.
 
 ### 6. API Configuration
 
@@ -139,23 +136,19 @@ expo build:android
 
 ### ✅ Implemented
 - Report sightings with photos
-- View and search sightings
-- Map visualization
-- AI chat analysis
+- View 10 most recent sightings (no search)
+- Map visualization with circle search
 - Unit selection
 - Form saving (local storage)
 - GPS location capture
 - Camera integration
 
-### ⚠️ Simplified for Mobile
-- Admin panel (basic placeholder)
+### ❌ Not Available on Mobile
+- AI Analysis / LLM chat (removed)
+- Admin panel (removed)
+- Advanced search functionality (removed)
 - Word document export (not available on mobile)
-- Advanced map features (simplified UI)
-
-### 🔄 Web-Specific (Not Available on Mobile)
-- MoW map integration (uses standard maps on mobile)
-- Word document generation
-- Full admin panel features
+- MoW map integration (web uses Leaflet, mobile uses react-native-maps)
 
 ## Testing Checklist
 
@@ -167,9 +160,7 @@ expo build:android
 - [ ] Verify location permissions
 - [ ] Test camera functionality
 - [ ] Test form submission
-- [ ] Test search functionality
 - [ ] Test map visualization
-- [ ] Test AI chat
 
 ## Troubleshooting
 
@@ -198,9 +189,8 @@ expo build:android
 
 2. **Enhanced Features**:
    - Push notifications
-   - Offline mode with sync
-   - Enhanced map features
-   - Full admin panel
+   - Enhanced offline sync
+   - Performance optimization
 
 3. **Testing**:
    - Device testing on iOS and Android

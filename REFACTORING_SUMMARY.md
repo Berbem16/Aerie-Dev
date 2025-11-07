@@ -28,16 +28,14 @@ Successfully refactored the UAS Reporting web application to support mobile plat
 All main screens have been converted to React Native:
 
 - ✅ **HomeScreen** - Report sightings with camera, GPS, and form inputs
-- ✅ **SightingsScreen** - View and search sightings
+- ✅ **SightingsScreen** - View 10 most recent sightings (no search functionality)
 - ✅ **MapScreen** - Interactive map with circle search
-- ✅ **AnalysisScreen** - AI chat interface with streaming responses
-- ✅ **AdminScreen** - Placeholder (simplified for mobile)
 
 ### 4. Mobile-Specific Features Added
 
 - **Camera Integration**: Direct camera access and photo library selection
 - **GPS Integration**: Automatic location capture with reverse geocoding
-- **Offline Support**: Forms and chat history saved locally
+- **Offline Support**: Forms saved locally
 - **Native UI**: Touch-optimized interface with proper mobile gestures
 - **Permissions Handling**: Automatic permission requests for camera and location
 
@@ -62,10 +60,8 @@ mobile/
 │   │   └── UnitSelectionModal.js   # Unit selection component
 │   ├── screens/
 │   │   ├── HomeScreen.js           # Report sightings
-│   │   ├── SightingsScreen.js      # View sightings
-│   │   ├── MapScreen.js            # Map visualization
-│   │   ├── AnalysisScreen.js       # AI chat
-│   │   └── AdminScreen.js          # Admin (placeholder)
+│   │   ├── SightingsScreen.js      # View 10 most recent sightings
+│   │   └── MapScreen.js            # Map visualization
 │   └── utils/
 │       ├── storage.js              # AsyncStorage utilities
 │       ├── location.js             # Location services
@@ -76,16 +72,16 @@ mobile/
 
 ### ✅ Fully Implemented
 - Report sightings with photos and GPS
-- View and search all sightings
+- View 10 most recent sightings (no search)
 - Interactive map with circle search
-- AI-powered chat analysis
 - Unit selection workflow
 - Form saving (local storage)
 - Real-time data sync with backend
 
-### ⚠️ Simplified for Mobile
-- Admin panel (basic placeholder)
-- Map features (uses standard maps instead of MoW)
+### ❌ Not Available on Mobile
+- AI Analysis / LLM chat (removed from mobile app)
+- Admin panel (removed from mobile app)
+- Advanced search functionality (removed from mobile app)
 - Word document export (not available on mobile)
 
 ## Getting Started
