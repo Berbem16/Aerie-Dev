@@ -21,6 +21,7 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **Responsive Design**: Works on desktop and mobile devices
 - **Real-Time Updates**: Live dashboard statistics and form validation
 - **Browser Storage**: AI chat history and form data persisted locally
+- **Mobile App**: React Native mobile application for iOS and Android
 
 ### New Features (Latest Updates)
 - **🆕 Dashboard Redesign**: Left sidebar navigation with AERIE branding
@@ -35,7 +36,8 @@ A modern, dashboard-style web application for reporting UAS (Unmanned Aerial Sys
 - **🆕 Dynamic Page Titles**: Context-aware header titles that update with navigation
 - **🆕 User Management**: Add, edit, delete users with role-based permissions
 - **🆕 Database Manager**: Real-time PostgreSQL table monitoring and schema display
-- **🆕 AI Analysis Integration**: Live LLM chat interface powered by Cerebras API
+- **🆕 AI Analysis Integration**: Live LLM chat interface powered by Cerebras API (gpt-oss-120b model)
+- **🆕 Mobile App**: React Native mobile application for iOS and Android with simplified interface
 - **🆕 Persistent Chat History**: AI conversation saved to browser storage for continuity across sessions
 - **🆕 Development Timeline**: Visual progress tracking for AI feature development
 - **🆕 Word Document Export**: Professional military-grade Word document generation for saved forms
@@ -76,8 +78,85 @@ Real-time statistics displayed at the top of the Report page:
 - **REPORT**: Main sighting submission form with interactive map
 - **SIGHTINGS**: Advanced search and viewing of all reported sightings
 - **MAP**: Interactive map visualization with military symbols and circle search functionality
-- **ANALYSIS**: AI-powered chat interface with live Cerebras LLM integration
+- **ANALYSIS**: AI-powered chat interface with live Cerebras LLM integration (gpt-oss-120b model)
 - **ADMIN**: Complete administrative panel with user, sightings, and database management
+
+## Mobile Application
+
+AERIE includes a React Native mobile app built with Expo for iOS and Android devices. The mobile app provides a streamlined interface optimized for field reporting.
+
+### Mobile App Features
+- **Report Tab**: Submit UAS sightings with:
+  - Camera integration for photo capture
+  - GPS location services for automatic coordinates
+  - Photo library access
+  - Unit selection workflow
+  - Form saving to local storage
+- **Sightings Tab**: View the 10 most recent sightings
+  - Simple list view (no search functionality)
+  - Sorted by time (newest first)
+  - Displays type, time, location, coordinates, unit, and description
+- **Map Tab**: Interactive map visualization
+  - View all sightings on map
+  - Long press to search by circle radius
+  - Native map controls
+
+### Mobile App Structure
+```
+mobile/
+├── App.js                    # Main app with tab navigation
+├── app.json                  # Expo configuration
+├── package.json              # Mobile dependencies
+├── src/
+│   ├── config/
+│   │   └── api.js            # API endpoint configuration
+│   ├── components/
+│   │   └── UnitSelectionModal.js
+│   ├── screens/
+│   │   ├── HomeScreen.js     # Report sightings
+│   │   ├── SightingsScreen.js # View 10 most recent sightings
+│   │   └── MapScreen.js      # Interactive map
+│   └── utils/
+│       ├── storage.js        # AsyncStorage utilities
+│       ├── location.js       # GPS/location services
+│       └── camera.js         # Camera integration
+```
+
+### Mobile App Setup
+
+1. **Install dependencies:**
+   ```bash
+   cd mobile
+   npm install
+   ```
+
+2. **Configure API URL:**
+   - Update `mobile/src/config/api.js` with your backend URL
+   - For physical device testing, use your computer's local IP address (e.g., `http://192.168.1.100:8000`)
+
+3. **Start the app:**
+   ```bash
+   npm start
+   ```
+
+4. **Run on device:**
+   - Install Expo Go app on your phone
+   - Scan QR code from terminal
+   - Ensure phone and computer are on same Wi-Fi network
+
+### Mobile vs Web Features
+
+| Feature | Web App | Mobile App |
+|---------|---------|------------|
+| Report Sightings | ✅ | ✅ |
+| View Sightings | ✅ (with search) | ✅ (10 most recent, no search) |
+| Map Visualization | ✅ | ✅ |
+| AI Analysis | ✅ | ❌ |
+| Admin Panel | ✅ | ❌ |
+| Advanced Search | ✅ | ❌ |
+| Camera Integration | ✅ (file upload) | ✅ (native camera) |
+| GPS Location | ✅ (manual/geocoding) | ✅ (native GPS) |
+| Word Document Export | ✅ | ❌ |
 
 ## Unit Selection Workflow
 
@@ -274,7 +353,7 @@ The Analysis tab provides a live AI-powered chat interface powered by the Cerebr
 
 #### Integration Details
 - **Cerebras Cloud SDK**: Powered by Cerebras Cloud API (cerebras-cloud-sdk v1.56.1)
-- **Model**: qwen-3-235b-a22b-instruct-2507
+- **Model**: gpt-oss-120b
 - **Streaming Responses**: Server-Sent Events (SSE) for real-time updates
 - **High Token Limit**: Up to 20,000 completion tokens per response
 - **Configurable Parameters**: Temperature, top_p, and max tokens adjustable
@@ -600,6 +679,11 @@ uas-reporting-tool/
 ├── requirements.txt     # Python dependencies (includes cerebras-cloud-sdk)
 ├── pgadmin/             # pgAdmin configuration
 │   └── servers.json     # Auto-connect server configuration
+├── mobile/              # React Native mobile application
+│   ├── App.js           # Main app with tab navigation
+│   ├── app.json         # Expo configuration
+│   ├── package.json     # Mobile dependencies
+│   └── src/             # Mobile app source code
 ├── start.bat            # Windows startup script
 ├── stop.bat             # Windows stop script
 ├── cleanup.bat          # Windows cleanup script
@@ -701,7 +785,7 @@ docker-compose logs postgres
 ### LLM Endpoints
 - `POST /llm/chat` - Chat with AI assistant (streaming):
   - `messages` - Conversation history array
-  - `model` - Model name (default: qwen-3-235b-a22b-instruct-2507)
+  - `model` - Model name (default: gpt-oss-120b)
   - `temperature` - Response creativity (default: 0.7)
   - `top_p` - Nucleus sampling (default: 0.8)
   - `max_completion_tokens` - Maximum tokens (default: 20000)
