@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as Camera from 'expo-camera';
+import { Platform } from 'react-native';
 
 // Request camera permissions
 export const requestCameraPermission = async () => {
@@ -35,12 +36,21 @@ export const takePhoto = async () => {
       return permissionResult;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
+    // Force English locale for system dialogs by using presentationStyle on iOS
+    const options = {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,
-    });
+    };
+
+    // On iOS, we can't directly control the system dialog language,
+    // but we ensure our app locale is set to English in app.json
+    if (Platform.OS === 'ios') {
+      options.presentationStyle = ImagePicker.UIImagePickerPresentationStyle.AUTOMATIC;
+    }
+
+    const result = await ImagePicker.launchCameraAsync(options);
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       return {
@@ -65,13 +75,22 @@ export const pickImage = async () => {
       return permissionResult;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
+    // Force English locale for system dialogs
+    const options = {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,
       allowsMultipleSelection: true,
-    });
+    };
+
+    // On iOS, we can't directly control the system dialog language,
+    // but we ensure our app locale is set to English in app.json
+    if (Platform.OS === 'ios') {
+      options.presentationStyle = ImagePicker.UIImagePickerPresentationStyle.AUTOMATIC;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync(options);
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       return {

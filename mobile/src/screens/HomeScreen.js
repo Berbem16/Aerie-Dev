@@ -48,6 +48,7 @@ const HomeScreen = () => {
   const [pendingReports, setPendingReports] = useState(0);
   const [savedFormsCount, setSavedFormsCount] = useState(0);
   const [showUnitModal, setShowUnitModal] = useState(false);
+  const [showImagePickerModal, setShowImagePickerModal] = useState(false);
 
   const sightingTypeOptions = [
     'UAS - Fixed Wing',
@@ -392,14 +393,14 @@ const HomeScreen = () => {
               onPress={handleSearchLocation}
               disabled={isLoading}
             >
-              <Icon name="search" size={20} color="#1a1a1a" />
+              <Text style={styles.buttonLabel}>Search</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.gpsButton}
               onPress={handleUseCurrentLocation}
               disabled={isLoading}
             >
-              <Icon name="my-location" size={20} color="#1a1a1a" />
+              <Text style={styles.buttonLabel}>GPS</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -443,13 +444,11 @@ const HomeScreen = () => {
         <View style={styles.formGroup}>
           <Text style={styles.label}>Pictures:</Text>
           <View style={styles.photoButtons}>
-            <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto}>
-              <Icon name="camera-alt" size={20} color="#1a1a1a" />
-              <Text style={styles.photoButtonText}>Camera</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
-              <Icon name="photo-library" size={20} color="#1a1a1a" />
-              <Text style={styles.photoButtonText}>Gallery</Text>
+            <TouchableOpacity 
+              style={styles.photoButton} 
+              onPress={() => setShowImagePickerModal(true)}
+            >
+              <Text style={styles.photoButtonText}>Add Photo</Text>
             </TouchableOpacity>
           </View>
 
@@ -512,6 +511,41 @@ const HomeScreen = () => {
         onClose={() => setShowUnitModal(false)}
         onSubmit={handleUnitSelection}
       />
+
+      {/* Custom Image Picker Modal */}
+      {showImagePickerModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.imagePickerModal}>
+            <Text style={styles.modalTitle}>Select Photo Source</Text>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={async () => {
+                setShowImagePickerModal(false);
+                await handleTakePhoto();
+              }}
+            >
+              <Icon name="camera-alt" size={24} color="#ffd700" />
+              <Text style={styles.modalOptionText}>Camera</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={async () => {
+                setShowImagePickerModal(false);
+                await handlePickImage();
+              }}
+            >
+              <Icon name="photo-library" size={24} color="#ffd700" />
+              <Text style={styles.modalOptionText}>Gallery</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalCancel}
+              onPress={() => setShowImagePickerModal(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -604,11 +638,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffd700',
     padding: 12,
     borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 70,
   },
   gpsButton: {
     backgroundColor: '#ffd700',
     padding: 12,
     borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 70,
+  },
+  buttonLabel: {
+    color: '#1a1a1a',
+    fontSize: 12,
+    fontWeight: '600',
   },
   coordinatesGroup: {
     flexDirection: 'row',
@@ -641,10 +686,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffd700',
     padding: 12,
     borderRadius: 4,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
   },
   photoButtonText: {
     color: '#1a1a1a',
@@ -715,6 +758,61 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: '#ffffff',
     fontSize: 14,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  imagePickerModal: {
+    backgroundColor: '#2d2d2d',
+    borderRadius: 12,
+    padding: 20,
+    width: '80%',
+    maxWidth: 300,
+    borderWidth: 1,
+    borderColor: '#404040',
+  },
+  modalTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    marginBottom: 10,
+    backgroundColor: '#404040',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#555555',
+  },
+  modalOptionText: {
+    color: '#ffffff',
+    fontSize: 16,
+    marginLeft: 12,
+    fontWeight: '500',
+  },
+  modalCancel: {
+    marginTop: 10,
+    padding: 15,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#404040',
+  },
+  modalCancelText: {
+    color: '#cccccc',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

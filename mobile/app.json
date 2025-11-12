@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
+    "locale": "en",
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#1a1a1a"
@@ -14,7 +15,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.aerie.uasreporting"
+      "bundleIdentifier": "com.aerie.uasreporting",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundleLocalizations": ["en"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +35,13 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
-      ]
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": ""
+        }
+      },
+      "locale": "en"
     },
     "plugins": [
       [
