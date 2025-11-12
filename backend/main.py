@@ -378,7 +378,7 @@ async def llm_chat(request: Request, request_data: dict):
         model = request_data.get("model", "gpt-oss-120b")
         temperature = request_data.get("temperature", 0.7)
         top_p = request_data.get("top_p", 0.8)
-        max_completion_tokens = request_data.get("max_completion_tokens", 20000)
+        max_completion_tokens = request_data.get("max_completion_tokens", 1024)
         
         logging.info(f"Model: {model}, Messages count: {len(messages)}")
         
@@ -395,8 +395,25 @@ async def llm_chat(request: Request, request_data: dict):
         async def generate_response():
             try:
                 logging.info("Starting Cerebras chat completion...")
+                # Add system message to instruct plain text responses
+                system_message = {
+                    "role": "system",
+                    "content": (
+                        "You are an assistant specializing in UAS (Unmanned Aircraft System) operations, "
+                        "reporting, and analysis. Respond in plain text format only. "
+                        "Do not use markdown, code blocks, or special formatting. "
+                        "Use simple line breaks and keep responses concise with short, clear sentences. "
+                        "When relevant, focus on describing UAS types, sightings, flight patterns, "
+                        "payloads, or operational details in straightforward language."
+                    )
+                }
+                # Prepend system message if not already present
+                messages_with_system = messages.copy()
+                if not any(msg.get("role") == "system" for msg in messages_with_system):
+                    messages_with_system.insert(0, system_message)
+                
                 stream = client.chat.completions.create(
-                    messages=messages,
+                    messages=messages_with_system,
                     model=model,
                     stream=True,
                     max_completion_tokens=max_completion_tokens,

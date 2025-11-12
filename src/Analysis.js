@@ -313,6 +313,54 @@ const Analysis = () => {
     }
   };
 
+  // Function to strip markdown and format text for plain display
+  const formatPlainText = (text) => {
+    if (!text) return '';
+    
+    // Remove markdown formatting
+    let plainText = text
+      // Remove code blocks
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`([^`]+)`/g, '$1')
+      // Remove headers
+      .replace(/^#{1,6}\s+(.+)$/gm, '$1')
+      // Remove bold/italic
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      // Remove links but keep text
+      .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+      // Remove list markers
+      .replace(/^[\s]*[-*+]\s+/gm, '')
+      .replace(/^[\s]*\d+\.\s+/gm, '')
+      // Remove horizontal rules
+      .replace(/^---+$/gm, '')
+      // Clean up multiple newlines
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    
+    // Break long lines (wrap at ~80 characters)
+    const words = plainText.split(/\s+/);
+    const lines = [];
+    let currentLine = '';
+    
+    words.forEach(word => {
+      if ((currentLine + word).length > 80 && currentLine.length > 0) {
+        lines.push(currentLine.trim());
+        currentLine = word + ' ';
+      } else {
+        currentLine += word + ' ';
+      }
+    });
+    
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+    
+    return lines.join('\n');
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -391,9 +439,11 @@ const Analysis = () => {
                         whiteSpace: 'pre-wrap',
                         wordWrap: 'break-word',
                         color: '#E0E0E0',
-                        lineHeight: '1.6'
+                        lineHeight: '1.6',
+                        maxWidth: '100%',
+                        overflowWrap: 'break-word'
                       }}>
-                        {message.content}
+                        {message.role === 'assistant' ? formatPlainText(message.content) : message.content}
                       </div>
                     </div>
                   ))

@@ -4,7 +4,6 @@ import {
   FaHome, 
   FaEye,
   FaMap,
-  FaStar,
   FaCog,
   FaFileAlt
 } from 'react-icons/fa';
@@ -17,8 +16,11 @@ const TabNavigation = () => {
     <nav className="sidebar">
           <div className="sidebar-header">
             <div className="logo">
-              <FaStar className="logo-icon" />
-              <span className="logo-text">AERIE</span>
+              <img 
+                src="/AERIE_Logo.png" 
+                alt="AERIE Logo" 
+                className="logo-image"
+              />
             </div>
           </div>
       

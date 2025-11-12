@@ -52,6 +52,14 @@ body {
   gap: 8px;
 }
 
+.logo-image {
+  max-width: 180px;
+  max-height: 50px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
 .logo-icon {
   color: #ffd700;
   font-size: 20px;
