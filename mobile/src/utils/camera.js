@@ -1,11 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
-import * as Camera from 'expo-camera';
 import { Platform } from 'react-native';
 
 // Request camera permissions
 export const requestCameraPermission = async () => {
   try {
-    const { status } = await Camera.requestCameraPermissionsAsync();
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
       return { success: false, error: 'Camera permission denied' };
     }

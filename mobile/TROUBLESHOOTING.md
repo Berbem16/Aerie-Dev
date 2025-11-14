@@ -102,3 +102,4 @@ expo run:android  # or expo run:ios
 4. Check if port 8081 is available (Metro bundler default port)
 
 
+

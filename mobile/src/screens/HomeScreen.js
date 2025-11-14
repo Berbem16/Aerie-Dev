@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import API_URL from '../config/api';
 import { getCurrentLocation, reverseGeocode, geocodeAddress } from '../utils/location';
 import { takePhoto, pickImage } from '../utils/camera';
@@ -70,13 +69,24 @@ const HomeScreen = () => {
 
   const fetchSightingsCount = async () => {
     try {
-      const response = await fetch(`${API_URL}/sightings`);
+      const response = await fetch(`${API_URL}/sightings`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setSightingsCount(data.length);
+      } else {
+        console.warn('Failed to fetch sightings count:', response.status);
+        // Don't set count on error, keep existing value
       }
     } catch (error) {
-      console.error('Error fetching sightings count:', error);
+      // Silently fail - don't break the app if API is unavailable
+      // This is expected if backend isn't running or device can't reach it
+      console.warn('API unavailable - sightings count not updated:', error.message);
+      // The count will remain at 0 or previous value
     }
   };
 
@@ -461,7 +471,7 @@ const HomeScreen = () => {
                     style={styles.removePhotoButton}
                     onPress={() => handleRemovePhoto(index)}
                   >
-                    <Icon name="close" size={20} color="#fff" />
+                    <Text style={styles.removePhotoButtonText}>X</Text>
                   </TouchableOpacity>
                 </View>
               ))}
@@ -524,7 +534,6 @@ const HomeScreen = () => {
                 await handleTakePhoto();
               }}
             >
-              <Icon name="camera-alt" size={24} color="#ffd700" />
               <Text style={styles.modalOptionText}>Camera</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -534,7 +543,6 @@ const HomeScreen = () => {
                 await handlePickImage();
               }}
             >
-              <Icon name="photo-library" size={24} color="#ffd700" />
               <Text style={styles.modalOptionText}>Gallery</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -719,6 +727,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  removePhotoButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    lineHeight: 20,
+  },
   uploadButton: {
     backgroundColor: '#ffd700',
     padding: 12,
@@ -789,6 +803,7 @@ const styles = StyleSheet.create({
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: 15,
     marginBottom: 10,
     backgroundColor: '#404040',
@@ -799,8 +814,8 @@ const styles = StyleSheet.create({
   modalOptionText: {
     color: '#ffffff',
     fontSize: 16,
-    marginLeft: 12,
     fontWeight: '500',
+    textAlign: 'center',
   },
   modalCancel: {
     marginTop: 10,
